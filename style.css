@@ -371,39 +371,21 @@ body {
   line-height: 1.4;
 }
 
-/* LOGIN TABS */
-.login-tabs {
+/* LOGIN VERTICAL LAYOUT */
+.login-vertical {
   display: flex;
-  gap: 4px;
-  background: var(--peach);
-  border: 2.5px solid var(--card-border);
-  border-radius: 16px;
-  padding: 4px;
-  margin-bottom: 18px;
-  box-shadow: 3px 3px 0 var(--card-border);
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
 }
-.ltab {
-  flex: 1;
-  background: none;
-  border: none;
-  border-radius: 12px;
-  padding: 7px 4px;
-  font-family: var(--font-head);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: var(--transition);
+.login-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
-.ltab.active {
-  background: var(--card-bg);
-  color: var(--text-main);
-  border: 2px solid var(--card-border);
-  box-shadow: 2px 2px 0 var(--card-border);
-}
-.ltab:hover:not(.active) { background: rgba(255,255,255,0.4); }
 
-/* LOGIN PANELS */
+/* LOGIN PANELS (kept for compat) */
 .login-panel { display: flex; flex-direction: column; gap: 10px; }
 .login-panel.hidden { display: none !important; }
 
