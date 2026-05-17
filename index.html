@@ -20,25 +20,33 @@
   <div class="deco leaf">🍃</div>
   <div class="deco bean">☕</div>
 
-  <!-- LOGIN — Google only -->
   <div id="login-overlay" class="login-overlay">
     <div class="login-card">
       <div class="login-art">
-        <svg viewBox="0 0 120 90" width="140" xmlns="http://www.w3.org/2000/svg">
-          <rect x="25" y="40" width="65" height="40" rx="12" fill="#f4a96a" stroke="#2d1a0e" stroke-width="3.5"/>
-          <rect x="21" y="33" width="73" height="13" rx="7" fill="#f9c58d" stroke="#2d1a0e" stroke-width="3.5"/>
-          <path d="M90 44 Q113 44 113 60 Q113 76 90 76" fill="none" stroke="#2d1a0e" stroke-width="4" stroke-linecap="round"/>
-          <path d="M47 29 Q44 20 47 13" fill="none" stroke="#d4956a" stroke-width="3" stroke-linecap="round"/>
-          <path d="M60 25 Q57 16 60 9" fill="none" stroke="#d4956a" stroke-width="3" stroke-linecap="round"/>
-          <path d="M73 29 Q70 20 73 13" fill="none" stroke="#d4956a" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="50" cy="55" r="4.5" fill="#2d1a0e"/>
-          <circle cx="70" cy="55" r="4.5" fill="#2d1a0e"/>
-          <circle cx="52" cy="53" r="1.5" fill="white"/>
-          <circle cx="72" cy="53" r="1.5" fill="white"/>
-          <path d="M48 66 Q60 74 72 66" fill="none" stroke="#2d1a0e" stroke-width="3" stroke-linecap="round"/>
-          <ellipse cx="43" cy="62" rx="6" ry="3.5" fill="#f08080" opacity="0.55"/>
-          <ellipse cx="77" cy="62" rx="6" ry="3.5" fill="#f08080" opacity="0.55"/>
-          <rect x="14" y="78" width="92" height="6" rx="3" fill="#c8894a" stroke="#2d1a0e" stroke-width="2.5"/>
+        <svg viewBox="0 0 100 100" width="130" xmlns="http://www.w3.org/2000/svg">
+          <style>
+            .log-outline { stroke: #2d1a0e; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+            .log-cup { fill: #f9c58d; }
+            .log-coffee { fill: #c8894a; }
+            .log-steam { stroke: #2d1a0e; stroke-width: 3.5; stroke-linecap: round; fill: none; }
+          </style>
+          <g transform="translate(5, 5)">
+            <path class="log-steam" d="M30,20 Q37,8 45,20 T60,20" />
+            <path class="log-steam" d="M48,23 Q53,13 58,23" />
+            <ellipse class="log-outline" cx="45" cy="75" rx="35" ry="7" />
+            <ellipse style="fill: #f4a96a;" cx="45" cy="75" rx="35" ry="7" />
+            <path class="log-cup log-outline" d="M18,32 L24,65 Q45,74 66,65 L72,32 Z" />
+            <ellipse class="log-coffee" cx="45" cy="34" rx="24" ry="4" />
+            <ellipse class="log-outline" cx="45" cy="34" rx="25" ry="4" />
+            <circle cx="36" cy="48" r="4" fill="#2d1a0e"/>
+            <circle cx="54" cy="48" r="4" fill="#2d1a0e"/>
+            <circle cx="38" cy="46" r="1.2" fill="white"/>
+            <circle cx="56" cy="46" r="1.2" fill="white"/>
+            <path d="M41 57 Q45 62 49 57" fill="none" stroke="#2d1a0e" stroke-width="2.5" stroke-linecap="round"/>
+            <ellipse cx="30" cy="53" rx="5" ry="2.5" fill="#f08080" opacity="0.6"/>
+            <ellipse cx="60" cy="53" rx="5" ry="2.5" fill="#f08080" opacity="0.6"/>
+            <path class="log-outline" d="M72,42 Q88,42 88,52 Q88,61 70,61" />
+          </g>
         </svg>
       </div>
       <h1 class="login-title">FocusSpace</h1>
@@ -56,7 +64,6 @@
     </div>
   </div>
 
-  <!-- CREATE ROOM MODAL -->
   <div id="create-room-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <h3 class="modal-title">🚪 Buat Ruangan Baru</h3>
@@ -75,7 +82,6 @@
     </div>
   </div>
 
-  <!-- JOIN ROOM WITH PASSWORD MODAL -->
   <div id="pw-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <h3 class="modal-title">🔒 Ruangan Ini Berpassword</h3>
@@ -93,7 +99,6 @@
     </div>
   </div>
 
-  <!-- DELETE ROOM CONFIRM MODAL -->
   <div id="delete-room-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <h3 class="modal-title">🗑️ Hapus Ruangan?</h3>
@@ -108,10 +113,30 @@
   <div id="main-content" class="app-wrapper hidden">
     
     <header class="app-header">
-      <div class="header-left">
-        <span class="brand-icon">☕</span>
-        <span class="brand-text">FocusSpace</span>
+      <div class="header-left" style="display: flex; align-items: center; gap: 4px;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 65" width="175" height="40" style="display: block;">
+          <style>
+            .hd-outline { stroke: #4A2E2B; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+            .hd-cup { fill: #FFFDF9; }
+            .hd-coffee { fill: #E29578; }
+            .hd-steam { stroke: #4A2E2B; stroke-width: 3.5; stroke-linecap: round; fill: none; }
+            .hd-text-main { font-family: 'Fredoka', 'Segoe UI', sans-serif; font-weight: 700; font-size: 32px; fill: #4A2E2B; }
+            .hd-text-space { fill: #E29578; font-weight: 500; }
+          </style>
+          <g transform="translate(5, 2)">
+            <path class="hd-steam" d="M18,10 Q22,3 26,10" />
+            <path class="hd-steam" d="M27,12 Q31,5 35,12" />
+            <ellipse class="hd-outline" cx="27" cy="46" rx="22" ry="4" />
+            <ellipse style="fill: #FFFDF9;" cx="27" cy="46" rx="22" ry="4" />
+            <path class="hd-cup hd-outline" d="M10,20 L14,41 Q27,46 40,41 L44,20 Z" />
+            <ellipse class="hd-coffee" cx="27" cy="21" rx="16" ry="2.5" />
+            <ellipse class="hd-outline" cx="27" cy="21" rx="16" ry="2.5" />
+            <path class="hd-outline" d="M44,25 Q53,25 53,31 Q53,37 42,37" />
+          </g>
+          <text x="72" y="41" class="hd-text-main">Focus<tspan class="hd-text-space">Space</tspan></text>
+        </svg>
       </div>
+
       <div class="header-mid">
         <div class="sesh-badge" id="session-badge">Sesi ke-<span id="sesh-num">1</span></div>
         <button id="reset-sesh-btn" class="btn-reset-pomo" title="Reset hitungan sesi">🔄 Reset Sesi</button>
@@ -142,7 +167,6 @@
       </div>
     </header>
 
-    <!-- PROFILE MODAL -->
     <div id="profile-modal" class="profile-modal hidden">
       <div class="profile-card">
         <h3>Pengaturan Profil ✨</h3>
@@ -169,7 +193,6 @@
           <input type="text" id="edit-name-input" class="text-input" maxlength="20">
         </div>
 
-        <!-- TEMPERATUR LAYAR inside profile -->
         <div class="profile-temp-section">
           <div class="profile-temp-title">
             <span>🌡️</span> Temperatur Layar
@@ -206,7 +229,6 @@
         
         <section class="card card-pomo">
           <div class="pomo-body">
-            <!-- LEFT: Circular timer -->
             <div class="pomo-left">
               <div class="timer-wrap">
                 <svg class="timer-svg" viewBox="0 0 200 200">
@@ -220,7 +242,6 @@
               </div>
             </div>
             
-            <!-- RIGHT: Tabs + Controls -->
             <div class="pomo-right">
               <div class="mode-tabs">
                 <button class="mtab active" data-min="25" data-lbl="Focus Time!"><span class="mtab-emoji">🧠</span> Focus</button>
@@ -253,7 +274,6 @@
           </div>
         </section>
 
-        <!-- AMBIENT SOUNDS — Lo-Fi Tracks -->
         <section class="card card-mixer">
           <div class="card-header">
             <span class="card-icon">🎵</span>
@@ -324,7 +344,6 @@
             <div class="card-header">
               <span class="card-icon">💬</span>
               <h2 class="card-title" id="room-status">Belum bergabung ke ruangan</h2>
-              <!-- Delete room button (only visible to owner) -->
               <button id="delete-room-btn" class="btn-danger-sm hidden" title="Hapus ruangan (hanya owner)">🗑️ Hapus</button>
             </div>
             
@@ -395,7 +414,6 @@
             <div id="focus-timer-big" class="focus-big">25:00</div>
           </div>
         </div>
-        <!-- User Status Selector in Focus Mode -->
         <div class="focus-status-row">
           <span class="focus-status-label">Status kamu:</span>
           <div class="focus-status-btns">
@@ -411,7 +429,6 @@
 
   </div>
 
-  <!-- WARM SCREEN FILTER OVERLAY -->
   <div id="warm-filter" class="warm-filter"></div>
 
   <script type="module" src="script.js"></script>
