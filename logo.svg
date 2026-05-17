@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 90" width="100%" height="100%">
+  <style>
+    .outline { stroke: #4A2E2B; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    .cup-body { fill: #FFFDF9; }
+    .coffee { fill: #E29578; }
+    .steam { stroke: #4A2E2B; stroke-width: 3.5; stroke-linecap: round; fill: none; }
+    .text-main { font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; font-weight: 800; font-size: 38px; fill: #4A2E2B; }
+    .text-space { font-weight: 500; fill: #E29578; }
+  </style>
+
+  <g transform="translate(15, 10)">
+    <path class="steam" d="M25,15 Q30,5 35,15 T45,15" />
+    <path class="steam" d="M40,18 Q45,10 50,18" />
+    
+    <ellipse class="outline" cx="45" cy="68" rx="32" ry="6" />
+    <ellipse style="fill: #FFFDF9;" cx="45" cy="68" rx="32" ry="6" />
+    
+    <path class="cup-body outline" d="M20,30 L25,60 Q45,68 65,60 L70,30 Z" />
+    
+    <ellipse class="coffee" cx="45" cy="32" rx="22" ry="4" />
+    <ellipse class="outline" cx="45" cy="32" rx="23" ry="4" />
+    
+    <path class="outline" d="M70,38 Q84,38 84,48 Q84,56 68,56" />
+  </g>
+
+  <text x="120" y="58" class="text-main">Focus<tspan class="text-space">Space</tspan></text>
+</svg>
