@@ -523,8 +523,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getDatabase, ref, onValue, onDisconnect, set, push, onChildAdded, remove, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -557,58 +555,6 @@ let isGuest = false;
 // ── LOGIN ELEMENTS ──
 const loginOverlay = $('login-overlay');
 const mainContent  = $('main-content');
-
-// Tab switching
-const tabGoogleBtn = $('tab-google-btn');
-const tabEmailBtn  = $('tab-email-btn');
-const tabGuestBtn  = $('tab-guest-btn');
-const panelGoogle  = $('panel-google');
-const panelEmail   = $('panel-email');
-const panelRegister = $('panel-register');
-const panelGuest   = $('panel-guest');
-
-function showPanel(panel) {
-  [panelGoogle, panelEmail, panelRegister, panelGuest].forEach(p => p && p.classList.add('hidden'));
-  if (panel) panel.classList.remove('hidden');
-}
-
-if (tabGoogleBtn) tabGoogleBtn.addEventListener('click', () => {
-  [tabGoogleBtn, tabEmailBtn, tabGuestBtn].forEach(t => t.classList.remove('active'));
-  tabGoogleBtn.classList.add('active');
-  showPanel(panelGoogle);
-});
-if (tabEmailBtn) tabEmailBtn.addEventListener('click', () => {
-  [tabGoogleBtn, tabEmailBtn, tabGuestBtn].forEach(t => t.classList.remove('active'));
-  tabEmailBtn.classList.add('active');
-  showPanel(panelEmail);
-});
-if (tabGuestBtn) tabGuestBtn.addEventListener('click', () => {
-  [tabGoogleBtn, tabEmailBtn, tabGuestBtn].forEach(t => t.classList.remove('active'));
-  tabGuestBtn.classList.add('active');
-  showPanel(panelGuest);
-});
-
-// Goto register/login
-const gotoRegisterBtn = $('goto-register-btn');
-const gotoLoginBtn    = $('goto-login-btn');
-if (gotoRegisterBtn) gotoRegisterBtn.addEventListener('click', () => showPanel(panelRegister));
-if (gotoLoginBtn)    gotoLoginBtn.addEventListener('click', () => showPanel(panelEmail));
-
-// Toggle password visibility
-const toggleLoginPw = $('toggle-login-pw');
-const loginPwInput  = $('password-input');
-if (toggleLoginPw && loginPwInput) {
-  toggleLoginPw.addEventListener('click', () => {
-    loginPwInput.type = loginPwInput.type === 'password' ? 'text' : 'password';
-  });
-}
-const toggleRegPw = $('toggle-reg-pw');
-const regPwInput  = $('reg-pw-input');
-if (toggleRegPw && regPwInput) {
-  toggleRegPw.addEventListener('click', () => {
-    regPwInput.type = regPwInput.type === 'password' ? 'text' : 'password';
-  });
-}
 
 // ── handleLoginSuccess ──
 function handleLoginSuccess(uid, displayName, avatar, guest = false) {
@@ -644,61 +590,6 @@ if (googleLoginBtn) {
   });
 }
 
-// ── EMAIL LOGIN ──
-const emailLoginBtn = $('email-login-btn');
-const emailInput    = $('email-input');
-const pwInput       = $('password-input');
-const emailError    = $('email-error');
-
-if (emailLoginBtn) {
-  emailLoginBtn.addEventListener('click', async () => {
-    const email = emailInput ? emailInput.value.trim() : '';
-    const pw    = pwInput ? pwInput.value : '';
-    if (!email || !pw) { showLoginError(emailError, 'Email dan password wajib diisi!'); return; }
-    try {
-      emailLoginBtn.textContent = 'Memuat…';
-      emailLoginBtn.disabled = true;
-      const result = await signInWithEmailAndPassword(auth, email, pw);
-      const u = result.user;
-      // Use displayName or derive from email
-      const name = u.displayName || email.split('@')[0];
-      handleLoginSuccess(u.uid, name, '🐱');
-    } catch (err) {
-      emailLoginBtn.textContent = 'Masuk →';
-      emailLoginBtn.disabled = false;
-      showLoginError(emailError, getAuthErrorMsg(err.code));
-    }
-  });
-}
-
-// ── REGISTER ──
-const registerBtn   = $('register-btn');
-const regNameInput  = $('reg-name-input');
-const regEmailInput = $('reg-email-input');
-const regError      = $('reg-error');
-const regErrorMsg   = $('reg-error-msg');
-
-if (registerBtn) {
-  registerBtn.addEventListener('click', async () => {
-    const name  = regNameInput ? regNameInput.value.trim() : '';
-    const email = regEmailInput ? regEmailInput.value.trim() : '';
-    const pw    = regPwInput ? regPwInput.value : '';
-    if (!name)  { showLoginError(regError, 'Nama panggilan wajib diisi!'); return; }
-    if (!email) { showLoginError(regError, 'Email wajib diisi!'); return; }
-    if (pw.length < 6) { showLoginError(regError, 'Password minimal 6 karakter!'); return; }
-    try {
-      registerBtn.textContent = 'Membuat akun…';
-      registerBtn.disabled = true;
-      const result = await createUserWithEmailAndPassword(auth, email, pw);
-      handleLoginSuccess(result.user.uid, name, '🐣');
-    } catch (err) {
-      registerBtn.textContent = 'Buat Akun 🎉';
-      registerBtn.disabled = false;
-      showLoginError(regError, getAuthErrorMsg(err.code));
-    }
-  });
-}
-
 // ── GUEST LOGIN ──
 const guestLoginBtn  = $('guest-login-btn');
 const guestNameInput = $('guest-name-input');
@@ -714,24 +605,9 @@ if (guestLoginBtn) {
 
 function showLoginError(el, msg) {
   if (!el) return;
-  const msgEl = el.id === 'reg-error' ? regErrorMsg : el;
-  if (msgEl && msgEl !== el) msgEl.textContent = msg;
-  else el.textContent = `❌ ${msg}`;
+  el.textContent = `❌ ${msg}`;
   el.classList.remove('hidden');
   setTimeout(() => el.classList.add('hidden'), 5000);
-}
-
-function getAuthErrorMsg(code) {
-  const map = {
-    'auth/user-not-found': 'Email tidak ditemukan. Daftar dulu ya!',
-    'auth/wrong-password': 'Password salah. Coba lagi!',
-    'auth/email-already-in-use': 'Email sudah dipakai. Coba login!',
-    'auth/invalid-email': 'Format email tidak valid.',
-    'auth/weak-password': 'Password terlalu lemah (min 6 karakter).',
-    'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
-    'auth/invalid-credential': 'Email atau password salah.',
-  };
-  return map[code] || 'Terjadi kesalahan. Coba lagi!';
 }
 
 // ── LOGOUT ──
@@ -751,10 +627,6 @@ if (logoutBtn) {
     loginOverlay.style.opacity = '1';
     loginOverlay.style.pointerEvents = '';
     $('profile-modal').classList.add('hidden');
-    // Reset tab to Google
-    [tabGoogleBtn, tabEmailBtn, tabGuestBtn].forEach(t => t && t.classList.remove('active'));
-    if (tabGoogleBtn) tabGoogleBtn.classList.add('active');
-    showPanel(panelGoogle);
   });
 }
 
