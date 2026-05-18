@@ -725,8 +725,50 @@ body {
 .chat-box-stream::-webkit-scrollbar { width: 6px; } .chat-box-stream::-webkit-scrollbar-thumb { background: rgba(44,26,14,0.2); border-radius: 4px; }
 .chat-msg { background: var(--card-bg); border: 2px solid var(--card-border); border-radius: 12px; padding: 6px 12px; font-size: 13px; font-weight: 600; width: fit-content; max-width: 85%; box-shadow: 2px 2px 0 rgba(44,26,14,0.1); line-height: 1.4; word-break: break-word; animation: popIn 0.25s both; color: var(--text-main); }
 .chat-msg.own { background: var(--peach); align-self: flex-end; }
-.chat-msg strong { color: var(--text-main); font-family: var(--font-head); font-size: 12px; display: block; margin-bottom: 1px; }
-.chat-msg .t { font-size: 9px; opacity: 0.5; margin-left: 6px; float: right; margin-top: 4px; }
+.chat-msg-header { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+.chat-msg-header strong { color: var(--text-main); font-family: var(--font-head); font-size: 12px; }
+.chat-msg-body { font-size: 13px; font-weight: 600; line-height: 1.5; white-space: pre-wrap; }
+.chat-msg-footer { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 4px; }
+.chat-msg .t { font-size: 9px; opacity: 0.5; }
+.chat-reply-btn { background: none; border: none; cursor: pointer; font-size: 13px; opacity: 0; color: var(--text-muted); padding: 0 2px; transition: opacity 0.15s; line-height: 1; }
+.chat-msg:hover .chat-reply-btn { opacity: 0.7; }
+.chat-reply-btn:hover { opacity: 1 !important; }
+
+/* Reply quote inside message */
+.chat-reply-quote { background: rgba(44,26,14,0.06); border-left: 3px solid var(--orange); border-radius: 6px; padding: 4px 8px; margin-bottom: 5px; display: flex; flex-direction: column; gap: 1px; }
+.reply-quote-name { font-size: 10px; font-weight: 800; color: var(--orange); font-family: var(--font-head); }
+.reply-quote-text { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+
+/* Reply bar (above input) */
+.reply-bar { display: flex; align-items: center; gap: 8px; background: var(--peach); border: 2px solid var(--card-border); border-radius: 10px; padding: 6px 10px; margin-bottom: 6px; }
+.reply-bar.hidden { display: none; }
+.reply-bar-inner { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.reply-bar-icon { font-size: 14px; flex-shrink: 0; }
+.reply-bar-content { display: flex; flex-direction: column; min-width: 0; }
+.reply-bar-name { font-size: 10px; font-weight: 800; color: var(--orange); font-family: var(--font-head); }
+.reply-bar-text { font-size: 11px; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.reply-bar-cancel { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--text-muted); padding: 2px 4px; border-radius: 6px; flex-shrink: 0; }
+.reply-bar-cancel:hover { background: rgba(44,26,14,0.1); }
+
+/* Kazu AI message */
+.chat-msg.kazu-msg { background: linear-gradient(135deg, #fff8ee, #fef0d4); border-color: #d4956a; box-shadow: 2px 2px 0 rgba(212,149,106,0.3); }
+.kazu-avatar-badge { font-size: 16px; }
+.kazu-ai-badge { background: linear-gradient(135deg, #f4a96a, #f4845f); color: white; font-size: 9px; font-weight: 800; font-family: var(--font-head); padding: 1px 5px; border-radius: 6px; border: 1.5px solid rgba(44,26,14,0.2); }
+
+/* Kazu typing indicator */
+.kazu-typing { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--peach); border: 2px dashed var(--card-border); border-radius: 10px; margin-bottom: 6px; font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.kazu-typing.hidden { display: none; }
+.kazu-typing-avatar { font-size: 16px; }
+.kazu-typing-label { flex: 1; font-style: italic; }
+.kazu-typing-dots { display: flex; gap: 3px; }
+.kazu-typing-dots span { width: 5px; height: 5px; background: var(--orange); border-radius: 50%; animation: kazuDot 1.2s infinite; }
+.kazu-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.kazu-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes kazuDot { 0%,60%,100%{transform:translateY(0);opacity:0.4;} 30%{transform:translateY(-4px);opacity:1;} }
+
+/* Mention tag */
+.mention-kazu { background: linear-gradient(135deg, #f4a96a, #f4845f); color: white; font-weight: 800; padding: 1px 5px; border-radius: 6px; font-size: 12px; font-family: var(--font-head); }
+
 .chat-input-row { display: flex; gap: 6px; }
 .btn-send { background: var(--blue); border: 2.5px solid var(--card-border); border-radius: 12px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; box-shadow: 3px 3px 0 var(--card-border); flex-shrink: 0; }
 .react-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
