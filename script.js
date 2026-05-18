@@ -727,7 +727,7 @@ const quotes = [
   "💪 Otak yang lelah butuh jeda, bukan paksaan. Istirahat itu produktif!",
   "🎵 Temukan ritme belajarmu sendiri, bukan ritme orang lain.",
   "🌙 Bahkan bintang perlu kegelapan untuk bersinar.",
-  "🔥 Passion tanpa disiplin itu mimpi. Disiplin tanpa passion itu penyiksaan. Cari keduanya!",
+  "👑 Passion tanpa disiplin itu mimpi. Disiplin tanpa passion itu penyiksaan. Cari keduanya!",
 ];
 
 let quoteIndex = Math.floor(Math.random() * quotes.length);
@@ -799,14 +799,19 @@ function handleLoginSuccess(uid, displayName, avatar, guest = false) {
   userAvatar = avatar;
   isGuest    = guest;
 
-  $('widget-name').textContent   = username;
-  $('widget-avatar').textContent = userAvatar;
+  // --- FIX PENGAMAN ANTI CRASH ---
+  const widgetName = $('widget-name');
+  const widgetAvatar = $('widget-avatar');
+  if (widgetName)   widgetName.textContent = username;
+  if (widgetAvatar) widgetAvatar.textContent = userAvatar;
 
-  loginOverlay.style.opacity       = '0';
-  loginOverlay.style.pointerEvents = 'none';
-  setTimeout(() => loginOverlay.style.display = 'none', 500);
+  if (loginOverlay) {
+    loginOverlay.style.opacity = '0';
+    loginOverlay.style.pointerEvents = 'none';
+    setTimeout(() => loginOverlay.style.display = 'none', 500);
+  }
 
-  mainContent.classList.remove('hidden');
+  if (mainContent) mainContent.classList.remove('hidden');
   initQuote();
   listenToActiveRooms();
   setTimeout(() => {
@@ -941,8 +946,11 @@ if (saveProfileBtn) {
     if (!newName) return;
     username   = newName;
     userAvatar = selectedEmoji;
-    $('widget-name').textContent   = username;
-    $('widget-avatar').textContent = userAvatar;
+    
+    // --- FIX PENGAMAN DI FITUR SAVE PROFILE ---
+    if ($('widget-name'))   $('widget-name').textContent = username;
+    if ($('widget-avatar')) $('widget-avatar').textContent = userAvatar;
+    
     if (userRef) set(userRef, { name: username, avatar: userAvatar, uid: userUid, status: currentUserStatus });
     profileModal.classList.add('hidden');
   });
