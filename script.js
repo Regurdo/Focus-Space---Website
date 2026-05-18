@@ -1478,7 +1478,13 @@ updateTimerDisplay();
     // Update nav buttons
     mbnBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
 
+    // Sembunyikan chat area saat tab lain aktif agar header "Ruang" tidak nyangkut
+    const rightMain = document.querySelector('.dashboard-right-main');
+    const isChatTab = (tabName === 'chat');
+    if (rightMain) rightMain.classList.toggle('tab-hidden', !isChatTab);
+
     if (tabName === 'rooms') {
+      if (rightMain) rightMain.classList.remove('tab-hidden'); // rooms pakai sidebar di atas chat
       if (sidebar) sidebar.classList.add('mobile-active');
       if (chatContainer) chatContainer.classList.add('sidebar-open');
     } else if (tabs[tabName]) {
@@ -1498,6 +1504,8 @@ updateTimerDisplay();
       Object.values(tabs).forEach(el => { if (el) el.classList.remove('mobile-active'); });
       if (sidebar) sidebar.classList.remove('mobile-active');
       if (chatContainer) chatContainer.classList.remove('sidebar-open');
+      const rightMain = document.querySelector('.dashboard-right-main');
+      if (rightMain) rightMain.classList.remove('tab-hidden');
     }
   });
 
