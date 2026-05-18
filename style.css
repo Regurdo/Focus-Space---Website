@@ -919,3 +919,101 @@ body {
 ══════════════════════════════════════════ */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: rgba(44,26,14,0.2); border-radius: 4px; }
+
+/* ══════════════════════════════════════════
+   USER YOUTUBE PRESETS
+══════════════════════════════════════════ */
+.user-yt-preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 4px;
+  padding: 2px;
+}
+.user-yt-empty {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 12px 0;
+  font-family: var(--font-body);
+}
+.user-yt-preset-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--peach);
+  border: 1.5px solid var(--card-border);
+  border-radius: 10px;
+  padding: 7px 10px;
+  transition: var(--transition);
+}
+.user-yt-preset-item.playing-now {
+  background: var(--orange);
+  color: white;
+  border-color: var(--orange-deep);
+}
+.user-yt-preset-play {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  color: var(--accent);
+  transition: var(--transition);
+}
+.user-yt-preset-item.playing-now .user-yt-preset-play {
+  color: white;
+}
+.user-yt-preset-play:hover { transform: scale(1.15); }
+.user-yt-preset-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-yt-preset-item.playing-now .user-yt-preset-label { color: white; }
+.user-yt-preset-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  color: var(--red);
+  flex-shrink: 0;
+  transition: var(--transition);
+  line-height: 1;
+}
+.user-yt-preset-del:hover { transform: scale(1.2); color: var(--red-dark); }
+.modal-divider {
+  border: none;
+  border-top: 1.5px dashed var(--peach-dark);
+  margin: 10px 0;
+  opacity: 0.5;
+}
+
+/* ══════════════════════════════════════════
+   CHAT OWNER BADGE
+══════════════════════════════════════════ */
+.chat-owner-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--yellow);
+  color: var(--brown);
+  border: 1.5px solid var(--card-border);
+  border-radius: 6px;
+  padding: 0px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 16px;
+  font-family: var(--font-body);
+  letter-spacing: 0.3px;
+}
