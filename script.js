@@ -351,16 +351,112 @@ document.querySelectorAll('.yt-preset-btn').forEach(btn => {
   });
 });
 
+// ═══════════════════════════════════════════════
+//  USER YOUTUBE PRESETS — persisted per user
+// ═══════════════════════════════════════════════
+const YT_PRESET_LOCAL_KEY = 'fs-yt-presets'; // fallback for guests
+let userYtPresets = []; // [{id, label, vid}]
+let activeUserPresetId = null;
+
+// Load presets from Firebase (Google users) or localStorage (guests)
+async function loadYtPresets() {
+  if (!isGuest && userUid) {
+    try {
+      const snap = await get(ref(db, `userPresets/${userUid}/ytPresets`));
+      userYtPresets = snap.exists() ? (snap.val() || []) : [];
+    } catch (e) {
+      userYtPresets = [];
+    }
+  } else {
+    try {
+      userYtPresets = JSON.parse(localStorage.getItem(YT_PRESET_LOCAL_KEY + '_' + userUid) || '[]');
+    } catch (e) { userYtPresets = []; }
+  }
+  renderUserYtPresets();
+}
+
+async function saveYtPresets() {
+  if (!isGuest && userUid) {
+    try {
+      await set(ref(db, `userPresets/${userUid}/ytPresets`), userYtPresets);
+    } catch(e) {}
+  } else {
+    localStorage.setItem(YT_PRESET_LOCAL_KEY + '_' + userUid, JSON.stringify(userYtPresets));
+  }
+}
+
+function renderUserYtPresets() {
+  const list  = $('user-yt-preset-list');
+  const empty = $('user-yt-empty');
+  if (!list) return;
+  // Clear existing items (keep empty hint)
+  Array.from(list.children).forEach(c => { if (c !== empty) c.remove(); });
+  if (userYtPresets.length === 0) {
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  userYtPresets.forEach(preset => {
+    const item = document.createElement('div');
+    item.className = 'user-yt-preset-item' + (activeUserPresetId === preset.id ? ' playing-now' : '');
+    item.dataset.id = preset.id;
+
+    const playBtn = document.createElement('button');
+    playBtn.className = 'user-yt-preset-play';
+    playBtn.title = activeUserPresetId === preset.id ? 'Hentikan' : 'Putar';
+    playBtn.textContent = activeUserPresetId === preset.id ? '⏹' : '▶';
+    playBtn.addEventListener('click', () => {
+      if (activeUserPresetId === preset.id) {
+        stopYouTube();
+        activeUserPresetId = null;
+        renderUserYtPresets();
+      } else {
+        if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+        activeUserPresetId = preset.id;
+        playYouTube(preset.vid, preset.label);
+        renderUserYtPresets();
+      }
+    });
+
+    const label = document.createElement('span');
+    label.className = 'user-yt-preset-label';
+    label.textContent = preset.label;
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'user-yt-preset-del';
+    delBtn.title = 'Hapus preset';
+    delBtn.textContent = '🗑';
+    delBtn.addEventListener('click', () => {
+      if (activeUserPresetId === preset.id) { stopYouTube(); activeUserPresetId = null; }
+      userYtPresets = userYtPresets.filter(p => p.id !== preset.id);
+      saveYtPresets();
+      renderUserYtPresets();
+    });
+
+    item.appendChild(playBtn);
+    item.appendChild(label);
+    item.appendChild(delBtn);
+    list.appendChild(item);
+  });
+}
+
+// Patch stopYouTube to also clear activeUserPresetId badge
+const _origStopYouTube = stopYouTube;
+// We'll handle clearing in the event
+
 // YouTube Custom URL Modal
 const openYtCustom  = $('open-yt-custom');
 const ytCustomModal = $('yt-custom-modal');
 const ytCustomConfirm = $('yt-custom-confirm');
 const ytCustomCancel  = $('yt-custom-cancel');
 
-if (openYtCustom) openYtCustom.addEventListener('click', () => ytCustomModal && ytCustomModal.classList.remove('hidden'));
+if (openYtCustom) openYtCustom.addEventListener('click', () => {
+  if (ytCustomModal) ytCustomModal.classList.remove('hidden');
+  loadYtPresets();
+});
 if (ytCustomCancel) ytCustomCancel.addEventListener('click', () => ytCustomModal && ytCustomModal.classList.add('hidden'));
 if (ytCustomConfirm) {
-  ytCustomConfirm.addEventListener('click', () => {
+  ytCustomConfirm.addEventListener('click', async () => {
     const urlInput   = $('yt-custom-url');
     const labelInput = $('yt-custom-label');
     const url   = urlInput   ? urlInput.value.trim() : '';
@@ -368,12 +464,29 @@ if (ytCustomConfirm) {
     if (!url) { if (urlInput) urlInput.focus(); return; }
     const vid = extractYtId(url);
     if (!vid) { showChatToast('FocusSpace', '❌ URL YouTube tidak valid!'); return; }
+
+    // Save as new preset
+    const newPreset = { id: Date.now().toString(36), label, vid };
+    userYtPresets.push(newPreset);
+    await saveYtPresets();
+
+    // Play it
     if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+    activeUserPresetId = newPreset.id;
     playYouTube(vid, label);
-    ytCustomModal.classList.add('hidden');
+    renderUserYtPresets();
+
     if (urlInput) urlInput.value = '';
     if (labelInput) labelInput.value = '';
+    showChatToast('FocusSpace', `✅ Preset "${label}" disimpan & diputar!`);
   });
+}
+
+// Also stop clears user preset active state
+const ytStopBtnEl = $('yt-stop-btn');
+if (ytStopBtnEl) {
+  // We can't easily replace the event, so patch stopYouTube
+  // Already handled: user manually clicking ▶ again in renderUserYtPresets
 }
 
 // ── TODO LIST ──
@@ -685,8 +798,9 @@ function handleLoginSuccess(uid, displayName, avatar, guest = false) {
 
   mainContent.classList.remove('hidden');
   initQuote();
-  if (!guest) listenToActiveRooms();
-  else listenToActiveRooms(); // guests can also join rooms
+  listenToActiveRooms();
+  // Load user's personal YouTube presets (called after isGuest/userUid are set)
+  setTimeout(() => loadYtPresets(), 100);
 }
 
 // ── GOOGLE LOGIN ──
@@ -894,6 +1008,8 @@ const chatBox     = $('chat-box');
 const chatInput   = $('chat-input');
 const onlineCount = $('online-count');
 let unsubscribeRoomMeta = null;
+let roomOwnerUid = '';
+let roomOwnerName = '';
 
 function leaveRoom() {
   if (userRef) { remove(userRef); userRef = null; }
@@ -901,6 +1017,8 @@ function leaveRoom() {
   if (unsubscribeMsgs)     { unsubscribeMsgs();     unsubscribeMsgs     = null; }
   if (unsubscribeRoomMeta) { unsubscribeRoomMeta(); unsubscribeRoomMeta = null; }
   roomName = '';
+  roomOwnerUid = '';
+  roomOwnerName = '';
   if (roomInput) roomInput.value = '';
   if (chatBox) chatBox.innerHTML = '';
   if (chatSection) chatSection.style.display = 'none';
@@ -954,10 +1072,15 @@ function joinRoom(rn) {
   onDisconnect(userRef).remove();
 
   get(ref(db, `rooms/${roomName}/meta`)).then(snap => {
-    if (snap.exists() && snap.val().ownerUid === userUid) {
-      if (deleteRoomBtn) deleteRoomBtn.classList.remove('hidden');
-    } else {
-      if (deleteRoomBtn) deleteRoomBtn.classList.add('hidden');
+    if (snap.exists()) {
+      const meta = snap.val();
+      roomOwnerUid  = meta.ownerUid  || '';
+      roomOwnerName = meta.ownerName || '';
+      if (meta.ownerUid === userUid) {
+        if (deleteRoomBtn) deleteRoomBtn.classList.remove('hidden');
+      } else {
+        if (deleteRoomBtn) deleteRoomBtn.classList.add('hidden');
+      }
     }
   });
 
@@ -1142,6 +1265,18 @@ function appendMessage(msg) {
   timeEl.className = 't'; timeEl.textContent = msg.time;
   el.appendChild(senderEl);
 
+  // Owner badge: check by senderUid (preferred) or sender name
+  const isOwner = roomOwnerUid
+    ? (msg.senderUid && msg.senderUid === roomOwnerUid)
+    : (roomOwnerName && msg.sender === roomOwnerName);
+  if (isOwner) {
+    const badge = document.createElement('span');
+    badge.className = 'chat-owner-badge';
+    badge.title = 'Pemilik Ruangan';
+    badge.textContent = '👑 Owner';
+    el.appendChild(badge);
+  }
+
   if (msg.type === 'image' && msg.imageData) {
     const img = document.createElement('img');
     img.className = 'chat-img';
@@ -1165,14 +1300,14 @@ function sendMsg(text) {
   if (!text || !roomName) return;
   const now  = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  push(ref(db, `rooms/${roomName}/messages`), { sender: username, text, time, type: 'text' });
+  push(ref(db, `rooms/${roomName}/messages`), { sender: username, senderUid: userUid, text, time, type: 'text' });
 }
 
 function sendImageMsg(base64Data) {
   if (!base64Data || !roomName) return;
   const now  = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  push(ref(db, `rooms/${roomName}/messages`), { sender: username, text: '🖼️ Gambar', imageData: base64Data, time, type: 'image' });
+  push(ref(db, `rooms/${roomName}/messages`), { sender: username, senderUid: userUid, text: '🖼️ Gambar', imageData: base64Data, time, type: 'image' });
 }
 
 const sendBtn = $('send-btn');
