@@ -1096,41 +1096,71 @@ body {
     padding: 0;
     gap: 0;
     height: 100dvh;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
   }
 
   /* ─ Decorations hide ─ */
   .deco, .cafe-bg, .cafe-overlay { display: none; }
 
-  /* ─ Header ─ */
+  /* ─ Header: single tight row ─ */
   .app-header {
     border-radius: 0;
     border-left: none; border-right: none; border-top: none;
-    border-bottom: 3px solid var(--card-border);
-    box-shadow: 0 3px 0 var(--card-border);
-    height: 52px;
-    padding: 0 12px;
-    grid-template-columns: auto 1fr auto;
+    border-bottom: 2px solid var(--card-border);
+    box-shadow: none;
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    padding: 0 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     gap: 6px;
     flex-shrink: 0;
   }
-  .brand-icon { font-size: 20px; }
+  /* Left: brand icon only */
+  .header-left { flex-shrink: 0; padding-left: 0; }
+  .brand-icon { font-size: 18px; }
   .brand-text { display: none; }
-  .header-center { gap: 5px; justify-content: center; }
-  .sesh-badge { font-size: 10px; padding: 2px 7px; }
+  /* Center: timer strip only — shrink to content */
+  .header-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .sesh-badge { display: none; }
   .btn-reset-pomo { display: none; }
-  .header-timer-strip { padding: 2px 7px; gap: 3px; }
-  .header-timer-num { font-size: 13px; }
-  .header-play-btn { width: 20px; height: 20px; font-size: 8px; }
-  .header-right { gap: 5px; }
+  .header-timer-strip {
+    padding: 3px 8px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .header-timer-num { font-size: 14px; font-weight: 700; }
+  .header-play-btn { width: 22px; height: 22px; font-size: 9px; border-radius: 6px; }
+  /* Right: compact controls */
+  .header-right {
+    flex-shrink: 0;
+    gap: 4px;
+  }
   .online-pill { display: none; }
-  .btn-header-icon { width: 28px; height: 28px; font-size: 14px; }
   .status-selector-wrap { display: none; }
+  .btn-header-icon { width: 30px; height: 30px; font-size: 15px; }
   .widget-name { display: none; }
-  .user-profile-widget { padding: 2px 6px; border-radius: 50%; width: 30px; height: 30px; justify-content: center; }
-  .widget-avatar { font-size: 16px; }
+  .user-profile-widget {
+    width: 30px; height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+  }
+  .widget-avatar { font-size: 15px; }
 
-  /* ─ Main grid: single column, fill height ─ */
+  /* ─ Main grid fills remaining height ─ */
   .main-dashboard-grid {
     grid-template-columns: 1fr;
     flex: 1;
@@ -1139,25 +1169,25 @@ body {
     gap: 0;
   }
 
-  /* ─ Left aside becomes tab panels ─ */
+  /* ─ Left aside: managed by tab system ─ */
   .dashboard-left-aside {
-    display: contents; /* children managed by tab system */
+    display: contents;
   }
 
-  /* ─ Tab panels: hidden by default ─ */
+  /* ─ Tab panels: hidden by default, full overlay when active ─ */
   .card-pomo,
   .card-mixer,
   .card-todo {
     display: none;
     position: fixed;
-    inset: 52px 0 60px 0;
+    inset: 48px 0 56px 0;
     z-index: 50;
     border-radius: 0;
-    border-left: none; border-right: none;
-    border-top: 3px solid var(--card-border);
+    border-left: none; border-right: none; border-bottom: none;
+    border-top: 2px solid var(--card-border);
     overflow-y: auto;
     margin: 0;
-    animation: slideUp 0.22s cubic-bezier(0.34,1.4,0.64,1) both;
+    animation: slideUp 0.2s cubic-bezier(0.34,1.2,0.64,1) both;
   }
   .card-pomo.mobile-active,
   .card-mixer.mobile-active,
@@ -1166,99 +1196,162 @@ body {
     flex-direction: column;
   }
 
-  /* ─ Chat panel ─ */
+  /* ─ Chat: fills all height between header and bottom nav ─ */
   .dashboard-right-main {
     flex: 1;
     min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   .card-chat-layout-container {
     border-radius: 0;
-    border-left: none; border-right: none;
-    height: calc(100dvh - 52px - 60px);
+    border: none;
+    flex: 1;
+    min-height: 0;
     flex-direction: column;
+    display: flex;
   }
   .chat-main-stream {
     border-right: none;
-    border-bottom: 2px solid var(--card-border);
+    border: none;
     flex: 1;
     min-height: 0;
-    padding: 10px;
+    padding: 8px 10px 6px;
+    display: flex;
+    flex-direction: column;
   }
-  .chat-box-stream { margin-bottom: 8px; }
 
-  /* Hide sidebar panel — accessible via rooms tab feel */
+  /* ─ Chat header: compact, room info inline ─ */
+  .card-header {
+    margin-bottom: 6px;
+    flex-wrap: nowrap;
+    row-gap: 0;
+    align-items: center;
+  }
+  .card-icon { font-size: 14px; }
+  .card-title { font-size: 13px; }
+  .btn-danger-sm { font-size: 10px; padding: 2px 6px; }
+
+  /* Room owner info: inline next to title, not full-width row */
+  .room-owner-info {
+    width: auto;
+    border-top: none;
+    margin-top: 0;
+    margin-left: 4px;
+    padding: 0;
+    font-size: 10px;
+    gap: 2px;
+    opacity: 0.7;
+  }
+  .room-owner-crown { font-size: 10px; }
+  .room-owner-label { display: none; }
+  .room-owner-name { font-size: 10px; }
+
+  /* ─ Chat box: maximize space ─ */
+  .chat-box-stream {
+    flex: 1;
+    min-height: 0;
+    margin-bottom: 6px;
+    padding: 8px;
+    border-radius: 10px;
+    border-width: 2px;
+  }
+  .chat-msg {
+    font-size: 12px;
+    padding: 5px 10px;
+    max-width: 80%;
+    border-radius: 10px;
+  }
+  .chat-msg strong { font-size: 11px; }
+  .chat-msg .t { font-size: 9px; }
+  .chat-img { max-width: 160px; max-height: 140px; }
+
+  /* ─ Input row compact ─ */
+  .chat-input-row { gap: 5px; }
+  .btn-chat-icon { width: 36px; height: 36px; font-size: 15px; flex-shrink: 0; border-radius: 10px; }
+  .text-input { font-size: 15px; min-height: 36px; padding: 6px 10px; }
+  .btn-send { width: 36px; height: 36px; border-radius: 10px; }
+
+  /* ─ React bar: smaller, scrollable ─ */
+  .react-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 4px;
+    margin-top: 5px;
+    padding-bottom: 1px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .react-bar::-webkit-scrollbar { display: none; }
+  .rbtn {
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 3px 7px;
+    border-radius: 8px;
+    border-width: 1.5px;
+  }
+
+  /* ─ Rooms sidebar overlay ─ */
   .chat-room-sidebar {
     display: none;
     position: fixed;
-    inset: 52px 0 60px 0;
+    inset: 48px 0 56px 0;
     z-index: 50;
     width: 100%;
     border-radius: 0;
     border: none;
-    border-top: 3px solid var(--card-border);
+    border-top: 2px solid var(--card-border);
     overflow-y: auto;
-    animation: slideUp 0.22s cubic-bezier(0.34,1.4,0.64,1) both;
+    animation: slideUp 0.2s cubic-bezier(0.34,1.2,0.64,1) both;
+    padding: 14px;
+    gap: 12px;
   }
   .chat-room-sidebar.mobile-active {
     display: flex;
     flex-direction: column;
   }
-
-  /* When rooms sidebar is open, hide chat stream */
-  .chat-room-sidebar.mobile-active ~ .chat-main-stream,
   .card-chat-layout-container.sidebar-open .chat-main-stream {
     display: none;
   }
 
-  /* ─ React bar: scrollable ─ */
-  .react-bar {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    gap: 5px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .react-bar::-webkit-scrollbar { display: none; }
-  .rbtn { flex-shrink: 0; font-size: 13px; padding: 4px 8px; }
-
-  /* ─ Pomodoro mobile layout ─ */
-  .pomo-body {
-    flex-direction: row;
-    padding: 16px;
-    gap: 16px;
-    justify-content: center;
-  }
-  .timer-wrap { width: 140px; height: 140px; }
-  .timer-num { font-size: 26px; }
-  .pomo-right { flex: 1; max-width: 180px; }
-  .mode-tabs { flex-direction: row; gap: 6px; }
-  .mtab { font-size: 12px; padding: 6px 8px; flex: 1; justify-content: center; }
+  /* ─ Pomodoro layout ─ */
+  .card-pomo { padding: 14px; }
+  .pomo-body { flex-direction: row; padding: 0; gap: 14px; justify-content: center; }
+  .timer-wrap { width: 130px; height: 130px; }
+  .timer-num { font-size: 24px; }
+  .timer-lbl { font-size: 7px; }
+  .pomo-right { flex: 1; max-width: 170px; }
+  .mode-tabs { flex-direction: row; gap: 5px; }
+  .mtab { font-size: 11px; padding: 5px 6px; flex: 1; justify-content: center; }
   .mtab-emoji { display: none; }
-  .timer-controls { justify-content: center; gap: 12px; }
-  .btn-play { width: 52px; height: 52px; }
+  .timer-controls { justify-content: center; gap: 10px; }
+  .btn-play { width: 46px; height: 46px; }
+  .btn-play .ic { width: 18px; height: 18px; }
 
-  /* ─ Mixer mobile ─ */
-  .card-mixer { padding: 14px; }
-  .mixer-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .yt-preset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .yt-preset-btn { font-size: 11px; padding: 7px 8px; }
+  /* ─ Mixer layout ─ */
+  .card-mixer { padding: 12px; }
+  .mixer-grid { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .yt-preset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .yt-preset-btn { font-size: 11px; padding: 6px 7px; }
 
-  /* ─ Todo mobile ─ */
+  /* ─ Todo layout ─ */
+  .card-todo { padding: 12px; }
   .todo-inner { max-height: none; flex: 1; }
-  .todo-list-scroll { max-height: calc(100dvh - 260px); }
+  .todo-list-scroll { max-height: calc(100dvh - 250px); }
+  .todo-item { padding: 5px 8px; }
+  .todo-text { font-size: 12px; }
 
   /* ─ Bottom nav ─ */
   .mobile-bottom-nav {
     display: flex;
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: 60px;
+    height: 56px;
     background: var(--card-bg);
-    border-top: 3px solid var(--card-border);
-    box-shadow: 0 -3px 0 var(--card-border);
+    border-top: 2px solid var(--card-border);
     z-index: 200;
     align-items: stretch;
+    flex-shrink: 0;
   }
   .mbn-btn {
     flex: 1;
@@ -1266,104 +1359,69 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
     background: none;
     border: none;
     cursor: pointer;
-    transition: var(--transition);
+    transition: background 0.15s;
     padding: 4px 0;
     color: var(--text-muted);
-    border-right: 2px solid var(--card-border);
+    border-right: 1.5px solid var(--card-border);
     font-family: var(--font-body);
   }
   .mbn-btn:last-child { border-right: none; }
-  .mbn-btn.active {
-    background: var(--peach);
-    color: var(--text-main);
-  }
-  .mbn-btn.active .mbn-icon { transform: scale(1.15); }
-  .mbn-icon { font-size: 20px; line-height: 1; transition: transform 0.2s; }
-  .mbn-label { font-size: 10px; font-weight: 700; }
+  .mbn-btn.active { background: var(--peach); color: var(--text-main); }
+  .mbn-btn.active .mbn-icon { transform: scale(1.1); }
+  .mbn-icon { font-size: 18px; line-height: 1; transition: transform 0.15s; }
+  .mbn-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2px; }
 
-  /* ─ FAB repositioned ─ */
-  .focus-fab {
-    bottom: 70px;
-    right: 12px;
-    width: 40px; height: 40px;
-    font-size: 18px;
-    z-index: 201;
-  }
+  /* ─ FAB ─ */
+  .focus-fab { bottom: 64px; right: 10px; width: 38px; height: 38px; font-size: 17px; z-index: 201; }
 
-  /* ─ Toast adjust ─ */
-  #chat-toast {
-    bottom: 70px;
-    right: 12px;
-    left: 12px;
-    max-width: none;
-  }
+  /* ─ Toast ─ */
+  #chat-toast { bottom: 64px; right: 10px; left: 10px; max-width: none; }
 
-  /* ─ Modals full bottom-sheet style ─ */
+  /* ─ Modals as bottom sheet ─ */
   .modal-overlay { align-items: flex-end; }
   .modal-card {
-    width: 100%;
-    max-width: 100%;
-    border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 100%;
+    border-radius: 20px 20px 0 0;
     border-bottom: none;
-    box-shadow: 0 -4px 0 var(--card-border);
-    padding: 24px 20px 32px;
-    max-height: 90dvh;
+    box-shadow: 0 -3px 0 var(--card-border);
+    padding: 20px 18px 30px;
+    max-height: 88dvh;
     overflow-y: auto;
   }
   .profile-modal { align-items: flex-end; }
   .profile-card {
-    width: 100%;
-    max-width: 100%;
-    border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 100%;
+    border-radius: 20px 20px 0 0;
     border-bottom: none;
-    box-shadow: 0 -4px 0 var(--card-border);
-    padding: 20px 16px 32px;
+    box-shadow: 0 -3px 0 var(--card-border);
+    padding: 18px 16px 30px;
     max-height: 90dvh;
     overflow-y: auto;
   }
 
-  /* ─ Login screen mobile ─ */
-  .login-scene { padding: 12px; }
-  .login-card {
-    padding: 24px 20px 32px;
-    border-radius: 24px;
-    width: 100%;
-    max-width: 100%;
-  }
-  .login-vertical { gap: 14px; }
-  .login-title { font-size: 32px; }
+  /* ─ Login ─ */
+  .login-scene { padding: 10px; }
+  .login-card { padding: 22px 18px 30px; border-radius: 20px; width: 100%; max-width: 100%; }
+  .login-vertical { gap: 12px; }
+  .login-title { font-size: 30px; }
 
-  /* ─ Theme panel mobile ─ */
+  /* ─ Theme panel ─ */
   .theme-panel {
-    top: auto !important;
-    right: 0 !important;
-    bottom: 68px;
-    left: 0;
+    top: auto !important; right: 0 !important;
+    bottom: 62px; left: 0;
     width: 100% !important;
-    border-radius: 20px 20px 0 0;
+    border-radius: 16px 16px 0 0;
     border-bottom: none;
   }
-  .theme-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .theme-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
 
-  /* ─ Cards general padding ─ */
-  .card { padding: 14px; }
-  .card-header { margin-bottom: 10px; }
-
-  /* ─ Room owner info wrap fix ─ */
-  .room-owner-info { font-size: 11px; }
-
-  /* ─ Input & button touch targets ─ */
-  .text-input { font-size: 16px; /* prevent iOS zoom */ min-height: 40px; }
-  .btn-primary, .btn-google { min-height: 44px; }
-
-  /* ─ Chat rooms toggle button ─ */
-  .chat-rooms-toggle {
-    display: flex;
-  }
+  /* ─ Image preview bar ─ */
+  .img-preview-bar { font-size: 11px; padding: 5px 8px; gap: 6px; }
+  .img-preview-thumb { width: 36px; height: 36px; }
 }
 
 @keyframes slideUp {
