@@ -1356,7 +1356,7 @@ function clearReply() {
 if (replyBarCancel) replyBarCancel.addEventListener('click', clearReply);
 
 // ── KAZU AI ──
-const GEMINI_API_KEY = 'AIzaSyDemo_REPLACE_WITH_YOUR_KEY'; // Ganti dengan API key Gemini kamu
+const GEMINI_API_KEY = 'AIzaSyD9P2llaADun4ie2JaILC5hucluTLCzMFY'; // Ganti dengan API key Gemini kamu
 const KAZU_NAME = 'Kazu';
 const KAZU_AVATAR = '☕';
 const KAZU_UID = '__kazu_ai__';
