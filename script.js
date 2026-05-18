@@ -1453,3 +1453,59 @@ function nameToColor(name) {
 
 // ── INIT ──
 updateTimerDisplay();
+
+// ── MOBILE TAB NAVIGATION ──
+(function() {
+  const tabs = {
+    timer: document.querySelector('.card-pomo'),
+    music: document.querySelector('.card-mixer'),
+    todo:  document.querySelector('.card-todo'),
+    chat:  null, // chat is always the base layer
+  };
+  const sidebar = document.querySelector('.chat-room-sidebar');
+  const chatContainer = document.querySelector('.card-chat-layout-container');
+  const mbnBtns = document.querySelectorAll('.mbn-btn');
+
+  function isMobile() { return window.innerWidth <= 640; }
+
+  function activateTab(tabName) {
+    if (!isMobile()) return;
+
+    // Hide all panels
+    Object.values(tabs).forEach(el => { if (el) el.classList.remove('mobile-active'); });
+    if (sidebar) sidebar.classList.remove('mobile-active');
+    if (chatContainer) chatContainer.classList.remove('sidebar-open');
+
+    // Update nav buttons
+    mbnBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
+
+    // Show selected
+    if (tabName === 'chat') {
+      // base chat is always visible — nothing extra needed
+    } else if (tabName === 'rooms') {
+      if (sidebar) { sidebar.classList.add('mobile-active'); chatContainer && chatContainer.classList.add('sidebar-open'); }
+    } else if (tabs[tabName]) {
+      tabs[tabName].classList.add('mobile-active');
+    }
+  }
+
+  // Wire up bottom nav buttons
+  mbnBtns.forEach(btn => {
+    btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+  });
+
+  // Default: show chat on mobile
+  if (isMobile()) activateTab('chat');
+
+  window.addEventListener('resize', () => {
+    if (!isMobile()) {
+      // Remove all mobile classes on desktop
+      Object.values(tabs).forEach(el => { if (el) el.classList.remove('mobile-active'); });
+      if (sidebar) sidebar.classList.remove('mobile-active');
+      if (chatContainer) chatContainer.classList.remove('sidebar-open');
+    }
+  });
+
+  // Expose for other parts of the app
+  window.mobileActivateTab = activateTab;
+})();
