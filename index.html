@@ -1,420 +1,549 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FocusSpace — Ruang Fokus Bersama</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusSpace ☕</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div id="warm-filter"></div>
+  <div class="cafe-bg"></div>
+  <div class="cafe-overlay"></div>
 
-  <header class="header-strip">
-    <div class="header-left">
-      <span class="logo-text">FocusSpace</span>
-    </div>
-    <div class="header-center">
-      <span id="header-timer">25:00</span>
-      <button id="header-toggle-btn" class="hbtn">▶</button>
-    </div>
-    <div class="header-right">
-      <div class="status-indicator">
-        <span id="current-status-emoji">🧠</span>
-        <span id="current-status-text">Fokus</span>
-      </div>
-    </div>
-  </header>
+  <div class="deco s1">✦</div>
+  <div class="deco s2">✦</div>
+  <div class="deco s3">✧</div>
+  <div class="deco leaf">🍃</div>
+  <div class="deco bean">☕</div>
+  <div class="deco star4">⭐</div>
 
-  <div id="login-overlay" class="overlay-fullscreen">
-    <div class="login-card">
-      <h2>Selamat Datang di <span class="brand">FocusSpace</span></h2>
-      <p class="subtitle">Ruang belajar dan bekerja minimalis dengan fitur sinkronisasi kelompok.</p>
-      
-      <div id="login-error-msg" class="error-box hidden"></div>
-
-      <div class="guest-login-section">
-        <label for="guest-name-input">Masuk sebagai Tamu Quick-Join</label>
-        <div class="input-group">
-          <input type="text" id="guest-name-input" placeholder="Ketik nama kamu..." maxlength="15">
-          <button id="guest-login-btn" class="pbtn">Masuk Cepat</button>
-        </div>
-      </div>
-
-      <div class="divider"><span>atau</span></div>
-
-      <button id="google-login-btn" class="gbtn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
-        Masuk dengan Google
-      </button>
-    </div>
-  </div>
-
-  <div id="main-content" class="container hidden">
-    
-    <aside class="sidebar-left">
-      <section class="widget card profile-widget">
-        <div class="profile-main" id="profile-trigger" title="Edit Profil">
-          <div id="widget-avatar" class="u-avatar">👤</div>
-          <div class="u-info">
-            <h3 id="widget-name">Memuat...</h3>
-            <span class="badge-status">Online</span>
-          </div>
-        </div>
-        
-        <div class="status-selector-wrap" id="status-selector-wrap">
-          <div class="status-trigger">
-            <span>Ubah Status Kegiatan</span>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="status-dropdown hidden" id="status-dropdown">
-            <div class="status-opt active-opt" data-status="focus">🧠 Fokus</div>
-            <div class="status-opt" data-status="break">☕ Istirahat</div>
-            <div class="status-opt" data-status="studying">📚 Belajar</div>
-            <div class="status-opt" data-status="idle">💤 Santai</div>
-            <div class="status-opt" data-status="away">🚶 Away</div>
-          </div>
-        </div>
-
-        <button id="logout-btn" class="secondary-btn logout-btn">Keluar Akun 👋</button>
-      </section>
-
-      <section class="widget card">
-        <div class="section-header-inline">
-          <h4>Kelompok & Ruangan</h4>
-          <button id="open-create-room-btn" class="icon-btn-text" title="Buat ruangan berpassword">+ Buat Baru</button>
-        </div>
-        <div class="room-join-box">
-          <input type="text" id="room-input" placeholder="Nama ruangan (cth: ambis-bersama)" autocomplete="off">
-          <button id="join-btn" class="pbtn">Join</button>
-        </div>
-        <div id="room-status" class="room-status-text">Belum bergabung ke ruangan</div>
-
-        <div class="active-rooms-container">
-          <h5>Ruangan Aktif Saat Ini:</h5>
-          <div id="active-rooms-list" class="active-rooms-list">
-            <span class="no-rooms-hint">Memuat ruangan aktif...</span>
-          </div>
-        </div>
-
-        <button id="delete-room-btn" class="danger-btn hidden">Hapus Ruangan Ini 🗑️</button>
-      </section>
-
-      <section class="widget card">
-        <h4>Acoustic Ambience Mixer</h4>
-        <p class="widget-subtitle">Atur volume suara latar belakang untuk menutupi distraksi luar.</p>
-        
-        <div class="mixer-item">
-          <div class="mixer-info">
-            <span class="m-icon">🎵</span>
-            <div class="m-label-container">
-              <span class="m-label">Midnight Lofi / YT</span>
-              <span id="lofi1-pct" class="m-pct">0%</span>
-            </div>
-          </div>
-          <input type="range" id="lofi1-vol" min="0" max="1" step="0.01" value="0">
-          <input type="text" id="lofi1-yt-url" placeholder="Paste URL YouTube di sini..." style="width: 100%; margin-top: 6px; padding: 5px 8px; font-size: 11px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text);">
-        </div>
-
-        <div class="mixer-item">
-          <div class="mixer-info">
-            <span class="m-icon">🌧️</span>
-            <div class="m-label-container">
-              <span class="m-label">Hujan Deras</span>
-              <span id="lofi2-pct" class="m-pct">0%</span>
-            </div>
-          </div>
-          <input type="range" id="lofi2-vol" min="0" max="1" step="0.01" value="0">
-        </div>
-
-        <div class="mixer-item">
-          <div class="mixer-info">
-            <span class="m-icon">☕</span>
-            <div class="m-label-container">
-              <span class="m-label">Suasana Cafe</span>
-              <span id="lofi3-pct" class="m-pct">0%</span>
-            </div>
-          </div>
-          <input type="range" id="lofi3-vol" min="0" max="1" step="0.01" value="0">
-        </div>
-
-        <div class="mixer-item">
-          <div class="mixer-info">
-            <span class="m-icon">🔥</span>
-            <div class="m-label-container">
-              <span class="m-label">Api Unggun</span>
-              <span id="lofi4-pct" class="m-pct">0%</span>
-            </div>
-          </div>
-          <input type="range" id="lofi4-vol" min="0" max="1" step="0.01" value="0">
-        </div>
-
-        <div id="lofi1-youtube-container" style="display: none;"></div>
-        <audio id="lofi1-audio" loop src=""></audio>
-        <audio id="lofi2-audio" loop src="https://cdn.pixabay.com/download/audio/2022/06/04/audio_3332152865.mp3"></audio>
-        <audio id="lofi3-audio" loop src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_298bdf71df.mp3"></audio>
-        <audio id="lofi4-audio" loop src="https://cdn.pixabay.com/download/audio/2021/08/09/audio_cca2797e59.mp3"></audio>
-      </section>
-
-      <section class="widget card">
-        <div class="section-header-inline">
-          <h4>Temperatur Layar (Anti-Radiation)</h4>
-          <span id="temp-badge" class="temp-badge">Biru — Normal</span>
-        </div>
-        <p class="widget-subtitle">Menambahkan lapisan hangat filter oranye untuk mengurangi ketegangan mata di malam hari.</p>
-        <input type="range" id="screen-temp-slider" min="0" max="100" step="1" value="0">
-        <div class="preset-buttons">
-          <button class="tbtn temp-preset active" data-val="0">Mati</button>
-          <button class="tbtn temp-preset" data-val="20">Siang</button>
-          <button class="tbtn temp-preset" data-val="45">Sore</button>
-          <button class="tbtn temp-preset" data-val="70">Malam</button>
-        </div>
-      </section>
-    </aside>
-
-    <main class="main-center">
-      <section class="timer-card card">
-        
-        <div class="session-header-centered">
-          <div class="session-badge" id="session-badge">Sesi ke-<span id="sesh-num">1</span></div>
-          <div class="session-dots" id="sesh-dots">
-            <div class="sdot"></div>
-            <div class="sdot"></div>
-            <div class="sdot"></div>
-            <div class="sdot"></div>
-          </div>
-        </div>
-
-        <div class="tabs">
-          <button class="mtab active">Focus</button>
-          <button class="mtab">Short Break</button>
-          <button class="mtab">Long Break</button>
-        </div>
-
-        <div class="timer-circle-wrap">
-          <svg class="timer-svg" viewBox="0 0 180 180">
-            <circle class="ring-bg" cx="90" cy="90" r="82"></circle>
-            <circle class="ring-prog" id="ring-prog" cx="90" cy="90" r="82"></circle>
+  <!-- ══════════════ LOGIN OVERLAY ══════════════ -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-scene">
+      <div class="login-blob b1"></div>
+      <div class="login-blob b2"></div>
+      <div class="login-blob b3"></div>
+      <div class="login-card">
+        <div class="login-art">
+          <svg viewBox="0 0 120 90" width="130" xmlns="http://www.w3.org/2000/svg">
+            <rect x="25" y="40" width="65" height="40" rx="12" fill="#f4a96a" stroke="#2d1a0e" stroke-width="3.5"/>
+            <rect x="21" y="33" width="73" height="13" rx="7" fill="#f9c58d" stroke="#2d1a0e" stroke-width="3.5"/>
+            <path d="M90 44 Q113 44 113 60 Q113 76 90 76" fill="none" stroke="#2d1a0e" stroke-width="4" stroke-linecap="round"/>
+            <path d="M47 29 Q44 20 47 13" fill="none" stroke="#d4956a" stroke-width="3" stroke-linecap="round"/>
+            <path d="M60 25 Q57 16 60 9" fill="none" stroke="#d4956a" stroke-width="3" stroke-linecap="round"/>
+            <path d="M73 29 Q70 20 73 13" fill="none" stroke="#d4956a" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="50" cy="55" r="4.5" fill="#2d1a0e"/>
+            <circle cx="70" cy="55" r="4.5" fill="#2d1a0e"/>
+            <circle cx="52" cy="53" r="1.5" fill="white"/>
+            <circle cx="72" cy="53" r="1.5" fill="white"/>
+            <path d="M48 66 Q60 74 72 66" fill="none" stroke="#2d1a0e" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="43" cy="62" rx="6" ry="3.5" fill="#f08080" opacity="0.55"/>
+            <ellipse cx="77" cy="62" rx="6" ry="3.5" fill="#f08080" opacity="0.55"/>
+            <rect x="14" y="78" width="92" height="6" rx="3" fill="#c8894a" stroke="#2d1a0e" stroke-width="2.5"/>
           </svg>
-          <div class="timer-text-container">
-            <span id="timer-display" class="timer-number">25:00</span>
-            <span id="timer-label" class="timer-status-label">Focus Time!</span>
+        </div>
+        <div class="login-badge">✨ Virtual Study Café</div>
+        <h1 class="login-title">FocusSpace</h1>
+        <p class="login-sub">Ruang belajar virtualmu yang cozy & menyenangkan</p>
+        <div class="login-vertical">
+          <div class="login-section" id="section-guest">
+            <div class="guest-mascot">🐣</div>
+            <p class="guest-desc">Masuk sebagai tamu! Pilih nama panggilan untuk sesi ini.</p>
+            <div class="input-group">
+              <span class="input-icon">🌟</span>
+              <input type="text" id="guest-name-input" class="text-input" placeholder="Namamu…" maxlength="20"/>
+            </div>
+            <button id="guest-login-btn" class="btn-primary btn-block">Masuk sebagai Tamu 🚪</button>
+            <p class="guest-note">⚠️ Data tidak tersimpan saat keluar</p>
+          </div>
+          <div class="login-divider"><span>atau masuk dengan akun</span></div>
+          <div class="login-section" id="section-google">
+            <button id="google-login-btn" class="btn-google">
+              <svg width="20" height="20" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+              Masuk dengan Google
+            </button>
           </div>
         </div>
-
-        <div class="timer-controls">
-          <button id="reset-btn" class="circle-btn sec" title="Reset Sesi Ini">
-            <span class="icon">🔄</span>
-          </button>
-          <button id="toggle-btn" class="circle-btn primary-trigger" title="Mulai / Jeda">
-            <span id="play-icon" class="icon">▶</span>
-            <span id="pause-icon" class="icon hidden">⏸</span>
-          </button>
-          <button id="skip-btn" class="circle-btn sec" title="Skip Sesi">
-            <span class="icon">⏭</span>
-          </button>
-        </div>
-
-        <div class="timer-footer-actions">
-          <button id="reset-sesh-btn" class="text-link-btn">Reset Siklus Sesi Utama</button>
-        </div>
-      </section>
-
-      <div class="quote-card card">
-        <p id="daily-quote">"Memuat kata-kata bijak harian untukmu..."</p>
-        <button id="next-quote-btn" class="quote-refresh" title="Ganti kutipan">✦</button>
-      </div>
-
-      <section class="card todo-card">
-        <div class="section-header-inline">
-          <h4>Target Fokus Sesi Ini</h4>
-          <button id="clear-notes" class="icon-btn-text text-danger">Hapus Semua</button>
-        </div>
-        <div class="todo-input-row">
-          <input type="text" id="todo-input" placeholder="Tulis tugas atau target barumu di sini..." maxlength="50">
-          <button id="add-todo" class="pbtn">Tambah</button>
-        </div>
-        <div id="todo-list" class="todo-list-container"></div>
-        <div id="todo-stats" class="todo-stats-text"></div>
-      </section>
-    </main>
-
-    <aside class="sidebar-right">
-      <section class="widget card" id="members-wrap" style="display: none;">
-        <div class="section-header-inline">
-          <h4>Rekan Sekamar</h4>
-          <span id="online-count" class="count-badge">0 di #room</span>
-        </div>
-        <div id="members-list" class="members-grid"></div>
-      </section>
-
-      <section class="widget card chat-widget-container">
-        <div class="section-header-inline chat-header-border">
-          <h4>Live Chat Kelompok</h4>
-          <div class="chat-header-actions">
-            <button id="notif-toggle-btn" class="icon-action-btn" title="Matikan notifikasi suara">🔔</button>
-          </div>
-        </div>
-
-        <div id="chat-placeholder-hint" class="chat-placeholder">
-          <span class="c-icon">🚪</span>
-          <h5>Belum Masuk Ruangan</h5>
-          <p>Silakan buat atau pilih ruangan aktif di sebelah kiri untuk mengaktifkan fitur chat dan sinkronisasi pomodoro bersama teman.</p>
-        </div>
-
-        <div id="chat-section" class="chat-active-layout" style="display: none;">
-          <div id="chat-box" class="chat-messages-area"></div>
-          
-          <div class="quick-chats">
-            <button class="rbtn" data-msg="Halo semuanya! 👋">👋 Halo</button>
-            <button class="rbtn" data-msg="Aku mulai fokus ya! 🧠">🧠 Mulai Fokus</button>
-            <button class="rbtn" data-msg="Izin istirahat sebentar ☕">☕ Istirahat</button>
-            <button class="rbtn" data-msg="Ada yang mau ambis bareng? 📚">📚 Ambis Yuk</button>
-          </div>
-
-          <div class="chat-input-row">
-            <input type="text" id="chat-input" placeholder="Ketik pesan di sini..." maxlength="120" autocomplete="off">
-            <button id="send-btn" class="pbtn">Kirim</button>
-          </div>
-        </div>
-      </section>
-    </aside>
-
-  </div>
-
-  <button id="focus-fab" class="focus-fab-btn" title="Masuk Mode Fokus Total (Zen Mode)">
-    <span class="fab-icon">🎯</span>
-    <span class="fab-text">Zen Mode</span>
-  </button>
-
-  <div id="focus-overlay" class="overlay-fullscreen focus-zen-bg hidden">
-    <button id="exit-focus" class="exit-zen-btn" title="Keluar Zen Mode">✕ Keluar Mode Zen</button>
-    
-    <div class="zen-container">
-      <div class="zen-timer-circle">
-        <svg class="timer-svg" viewBox="0 0 180 180">
-          <circle class="ring-bg" cx="90" cy="90" r="82" style="stroke: rgba(255,255,255,0.06);"></circle>
-          <circle class="ring-prog" id="focus-ring" cx="90" cy="90" r="82" style="stroke: #fff;"></circle>
-        </svg>
-        <div class="zen-timer-text">
-          <span id="focus-timer-big" class="zen-number">25:00</span>
-          <span id="focus-sub-txt" class="zen-label">Focus Time!</span>
-        </div>
-      </div>
-
-      <div class="zen-status-row">
-        <button class="fstatus-btn active" data-status="focus">🧠 Fokus</button>
-        <button class="fstatus-btn" data-status="break">☕ Istirahat</button>
-        <button class="fstatus-btn" data-status="away">Walk Away 🚶</button>
+        <p class="login-note">Dengan masuk, kamu setuju berinteraksi secara positif 🌟</p>
       </div>
     </div>
   </div>
 
-  <div class="theme-manager-anchor">
-    <button id="open-theme-btn" class="theme-trigger-btn" title="Ubah Tema Warna">🎨 Tema</button>
-    <div id="theme-panel" class="theme-panel card hidden">
-      <div class="panel-header">
-        <h6>Pilih Palette Warna Workspace</h6>
-        <button id="close-theme-panel" class="close-text-x">×</button>
+  <!-- ══════════════ THEME PICKER PANEL ══════════════ -->
+  <div id="theme-panel" class="theme-panel hidden">
+    <div class="theme-panel-card">
+      <div class="theme-panel-header">
+        <span class="theme-panel-title">🎨 Pilih Tema</span>
+        <button id="close-theme-panel" class="btn-icon-sm" style="font-size:18px;">✕</button>
       </div>
       <div class="theme-grid">
-        <button class="theme-chip active" data-theme="default" style="--c1:#202024; --c2:#f4845f;"></button>
-        <button class="theme-chip" data-theme="matcha" style="--c1:#1e2522; --c2:#7ec8a0;"></button>
-        <button class="theme-chip" data-theme="ocean" style="--c1:#1a202c; --c2:#90c4e4;"></button>
-        <button class="theme-chip" data-theme="sakura" style="--c1:#261f22; --c2:#f4a7b9;"></button>
-        <button class="theme-chip" data-theme="espresso" style="--c1:#231f1d; --c2:#f4a96a;"></button>
-        <button class="theme-chip" data-theme="midnight" style="--c1:#0f0f11; --c2:#9d4edd;"></button>
-        <button class="theme-chip" data-theme="nordic" style="--c1:#2e3440; --c2:#88c0d0;"></button>
-        <button class="theme-chip" data-theme="cyberpunk" style="--c1:#120136; --c2:#00ffcc;"></button>
+        <button class="theme-chip active" data-theme="default" title="Cozy Cafe"><span class="theme-swatch" style="background: linear-gradient(135deg,#fef6e4,#f4a96a)"></span><span class="theme-label">☕ Cozy Cafe</span></button>
+        <button class="theme-chip" data-theme="midnight" title="Midnight"><span class="theme-swatch" style="background: linear-gradient(135deg,#1a1a2e,#16213e)"></span><span class="theme-label">🌙 Midnight</span></button>
+        <button class="theme-chip" data-theme="forest" title="Forest"><span class="theme-swatch" style="background: linear-gradient(135deg,#e8f5e9,#a5d6a7)"></span><span class="theme-label">🌿 Forest</span></button>
+        <button class="theme-chip" data-theme="ocean" title="Ocean"><span class="theme-swatch" style="background: linear-gradient(135deg,#e3f2fd,#90caf9)"></span><span class="theme-label">🌊 Ocean</span></button>
+        <button class="theme-chip" data-theme="sakura" title="Sakura"><span class="theme-swatch" style="background: linear-gradient(135deg,#fce4ec,#f48fb1)"></span><span class="theme-label">🌸 Sakura</span></button>
+        <button class="theme-chip" data-theme="sunset" title="Sunset"><span class="theme-swatch" style="background: linear-gradient(135deg,#fff3e0,#ff8a65)"></span><span class="theme-label">🌅 Sunset</span></button>
+        <button class="theme-chip" data-theme="lavender" title="Lavender"><span class="theme-swatch" style="background: linear-gradient(135deg,#ede7f6,#b39ddb)"></span><span class="theme-label">💜 Lavender</span></button>
+        <button class="theme-chip" data-theme="matcha" title="Matcha"><span class="theme-swatch" style="background: linear-gradient(135deg,#f1f8e9,#8bc34a)"></span><span class="theme-label">🍵 Matcha</span></button>
       </div>
     </div>
   </div>
 
-  <div id="profile-modal" class="modal-backdrop hidden">
+  <!-- ══════════════ EMOJI PICKER ══════════════ -->
+  <div id="emoji-picker" class="emoji-picker-popup hidden">
+    <div class="emoji-picker-grid" id="emoji-picker-grid"></div>
+  </div>
+
+  <!-- ══════════════ IMAGE LIGHTBOX ══════════════ -->
+  <div id="img-lightbox" class="img-lightbox hidden">
+    <div class="img-lightbox-bg"></div>
+    <div class="img-lightbox-content">
+      <img id="img-lightbox-img" src="" alt=""/>
+      <button id="img-lightbox-close" class="img-lightbox-close">✕</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ MODALS ══════════════ -->
+
+  <!-- CREATE ROOM MODAL -->
+  <div id="create-room-modal" class="modal-overlay hidden">
     <div class="modal-card">
-      <h4>Pengaturan Profil Kamu</h4>
-      <div class="avatar-edit-row">
-        <div id="profile-avatar-display" class="large-avatar">🐱</div>
-        <div class="emoji-selector-grid">
-          <button class="emoji-opt">🐱</button>
-          <button class="emoji-opt">🦊</button>
-          <button class="emoji-opt">🐻</button>
-          <button class="emoji-opt">🐼</button>
-          <button class="emoji-opt">🦁</button>
-          <button class="emoji-opt">🐸</button>
-          <button class="emoji-opt">🐵</button>
-          <button class="emoji-opt">🦉</button>
+      <h3 class="modal-title">🚪 Buat Ruangan Baru</h3>
+      <p class="modal-sub">Kamu akan jadi owner dan bisa hapus ruangan ini kapan saja.</p>
+      <label class="form-label">Nama Ruangan:</label>
+      <input type="text" id="new-room-name" class="text-input" placeholder="mis. belajar-bareng, biologi-kelas-xi…" maxlength="30" autocomplete="off"/>
+      <label class="form-label" style="margin-top:10px;">Password (opsional):</label>
+      <div class="pw-input-wrap">
+        <input type="password" id="new-room-pw" class="text-input" placeholder="Biarkan kosong jika tanpa password" maxlength="40" autocomplete="off"/>
+        <button id="toggle-pw-vis" class="btn-toggle-pw" type="button">👁️</button>
+      </div>
+      <div class="modal-actions">
+        <button id="confirm-create-room" class="btn-primary">Buat Ruangan 🎉</button>
+        <button id="cancel-create-room" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOIN ROOM WITH PASSWORD MODAL -->
+  <div id="pw-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">🔒 Ruangan Terkunci</h3>
+      <p class="modal-sub" id="pw-modal-room-name">Masukkan password untuk bergabung.</p>
+      <label class="form-label">Password:</label>
+      <div class="pw-input-wrap">
+        <input type="password" id="join-room-pw" class="text-input" placeholder="Password ruangan…" maxlength="40" autocomplete="off"/>
+        <button id="toggle-join-pw-vis" class="btn-toggle-pw" type="button">👁️</button>
+      </div>
+      <p id="pw-error-msg" class="pw-error hidden">❌ Password salah, coba lagi!</p>
+      <div class="modal-actions">
+        <button id="confirm-join-pw" class="btn-primary">Masuk 🚀</button>
+        <button id="cancel-join-pw" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE ROOM MODAL -->
+  <div id="delete-room-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">🗑️ Hapus Ruangan?</h3>
+      <p class="modal-sub">Semua pesan akan terhapus permanen. Tindakan ini tidak bisa dibatalkan!</p>
+      <div class="modal-actions">
+        <button id="confirm-delete-room" class="btn-danger">Ya, Hapus! 🗑️</button>
+        <button id="cancel-delete-room" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- YOUTUBE CUSTOM URL MODAL -->
+  <div id="yt-custom-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">▶️ Tambah Audio YouTube</h3>
+      <p class="modal-sub">Masukkan URL YouTube untuk diputar sebagai audio lofi kustom.</p>
+      <label class="form-label">Label (nama track):</label>
+      <input type="text" id="yt-custom-label" class="text-input" placeholder="mis. My Lofi Playlist…" maxlength="30" autocomplete="off" style="margin-bottom:10px;"/>
+      <label class="form-label">URL YouTube:</label>
+      <input type="text" id="yt-custom-url" class="text-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"/>
+      <p class="guest-note" style="margin-top:6px;">💡 Tip: Gunakan video YouTube lofi/musik panjang untuk pengalaman terbaik</p>
+      <div class="modal-actions">
+        <button id="yt-custom-confirm" class="btn-primary">Putar 🎵</button>
+        <button id="yt-custom-cancel" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profile-modal" class="profile-modal hidden">
+    <div class="profile-card">
+      <h3>👤 Profil Kamu</h3>
+      <div id="profile-avatar-display" class="avatar-large">🐱</div>
+      <div class="emoji-selector">
+        <button class="emoji-opt">🐱</button><button class="emoji-opt">🐶</button><button class="emoji-opt">🐼</button>
+        <button class="emoji-opt">🦊</button><button class="emoji-opt">🐸</button><button class="emoji-opt">🐣</button>
+        <button class="emoji-opt">🦁</button><button class="emoji-opt">🐯</button><button class="emoji-opt">🐺</button>
+        <button class="emoji-opt">🦄</button><button class="emoji-opt">🐧</button><button class="emoji-opt">🐻</button>
+        <button class="emoji-opt">🌟</button><button class="emoji-opt">🌸</button><button class="emoji-opt">☕</button>
+        <button class="emoji-opt">🍀</button><button class="emoji-opt">🌈</button><button class="emoji-opt">🎯</button>
+      </div>
+      <div class="name-edit-section">
+        <p class="hint-text">Ubah nama tampilan:</p>
+        <input type="text" id="edit-name-input" class="text-input" maxlength="20" placeholder="Namamu…"/>
+      </div>
+      <div class="profile-temp-section">
+        <div class="profile-temp-title">
+          🌡️ Suhu Layar
+          <span id="temp-badge" class="temp-badge">Normal</span>
+        </div>
+        <div class="temp-slider-wrap">
+          <div class="temp-gradient-bar">
+            <span class="temp-pole">❄️</span>
+            <input type="range" id="screen-temp-slider" class="screen-temp-slider temp-track" min="0" max="100" step="1" value="0"/>
+            <span class="temp-pole">🔥</span>
+          </div>
+          <div class="temp-presets">
+            <button class="temp-preset" data-val="0">❄️<br/><small>Normal</small></button>
+            <button class="temp-preset" data-val="30">🌤️<br/><small>Sore</small></button>
+            <button class="temp-preset" data-val="55">🕯️<br/><small>Hangat</small></button>
+            <button class="temp-preset" data-val="80">🔥<br/><small>Panas</small></button>
+          </div>
         </div>
       </div>
-      <div class="input-vertical-group">
-        <label for="edit-name-input">Nama Tampilan Baru</label>
-        <input type="text" id="edit-name-input" placeholder="Masukkan nama..." maxlength="15">
-      </div>
-      <div class="modal-actions">
-        <button id="close-profile-btn" class="secondary-btn">Batal</button>
-        <button id="save-profile-btn" class="pbtn">Simpan Perubahan</button>
+      <div class="profile-modal-actions">
+        <button id="save-profile-btn" class="btn-primary">Simpan ✨</button>
+        <button id="logout-btn" class="btn-danger">Keluar 👋</button>
+        <button id="close-profile-btn" class="btn-secondary">Tutup</button>
       </div>
     </div>
   </div>
 
-  <div id="create-room-modal" class="modal-backdrop hidden">
-    <div class="modal-card">
-      <h4>Buat Ruangan Belajar Baru</h4>
-      <p class="modal-subtitle">Ruangan yang dikunci password hanya bisa dimasuki oleh orang yang tahu kodenya (kecuali kamu sebagai pemilik ruangan).</p>
-      
-      <div class="input-vertical-group">
-        <label for="new-room-name">Nama Ruangan (Hanya huruf kecil, angka, dan strip)</label>
-        <input type="text" id="new-room-name" placeholder="contoh: kelompok-tugas-akhir" autocomplete="off">
-      </div>
-      
-      <div class="input-vertical-group">
-        <label for="new-room-pw">PIN / Password Ruangan (Kosongkan jika ingin publik)</label>
-        <div class="input-password-wrapper">
-          <input type="password" id="new-room-pw" placeholder="Ketik PIN bebas..." autocomplete="off">
-          <button id="toggle-pw-vis" class="toggle-inside-btn" type="button">👁️</button>
+  <!-- ══════════════ MAIN APP ══════════════ -->
+  <div id="main-content" class="app-wrapper hidden">
+
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="header-logo">☕</span>
+        <span class="header-brand">FocusSpace</span>
+        <div class="header-timer-wrap">
+          <span id="header-timer" class="header-timer">25:00</span>
+          <button id="header-toggle-btn" class="header-timer-btn">▶</button>
         </div>
       </div>
 
-      <div class="modal-actions">
-        <button id="cancel-create-room" class="secondary-btn">Batal</button>
-        <button id="confirm-create-room" class="pbtn">Buat Ruangan 🚪</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="pw-modal" class="modal-backdrop hidden">
-    <div class="modal-card">
-      <h4>🔒 Ruangan Terkunci PIN</h4>
-      <p id="pw-modal-room-name" class="modal-subtitle-highlight">Ruangan: #</p>
-      <p class="modal-subtitle">Masukkan PIN keamanan ruangan ini untuk dapat bergabung.</p>
-      
-      <div id="pw-error-msg" class="error-box text-center hidden">PIN yang kamu masukkan salah, coba lagi!</div>
-
-      <div class="input-vertical-group">
-        <div class="input-password-wrapper">
-          <input type="password" id="join-room-pw" placeholder="Masukkan PIN disini..." autocomplete="off">
-          <button id="toggle-join-pw-vis" class="toggle-inside-btn" type="button">👁️</button>
+      <div class="header-center">
+        <div class="online-pill">
+          <span class="online-dot"></span>
+          <span id="online-count">Pilih ruangan dulu</span>
         </div>
       </div>
 
-      <div class="modal-actions">
-        <button id="cancel-join-pw" class="secondary-btn">Kembali</button>
-        <button id="confirm-join-pw" class="pbtn">Verifikasi & Masuk 🔑</button>
+      <div class="header-right">
+        <div class="status-selector-wrap" id="status-selector-wrap">
+          <button class="current-status-btn" id="current-status-btn">
+            <span id="current-status-emoji">🧠</span>
+            <span id="current-status-text">Fokus</span>
+            <span class="status-arrow">▾</span>
+          </button>
+          <div id="status-dropdown" class="status-dropdown hidden">
+            <button class="status-opt active-opt" data-status="focus">🧠 Fokus</button>
+            <button class="status-opt" data-status="studying">📚 Belajar</button>
+            <button class="status-opt" data-status="break">☕ Istirahat</button>
+            <button class="status-opt" data-status="idle">💤 Santai</button>
+            <button class="status-opt" data-status="away">🚶 Away</button>
+          </div>
+        </div>
+        <button id="open-theme-btn" class="btn-header-icon" title="Tema">🎨</button>
+        <button id="profile-trigger" class="user-profile-widget">
+          <span id="widget-avatar">🐣</span>
+          <span id="widget-name">Tamu</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <div class="main-dashboard-grid">
+
+      <!-- LEFT ASIDE -->
+      <aside class="dashboard-left-aside">
+
+        <!-- POMODORO TIMER -->
+        <section class="card card-timer">
+          <div class="card-header">
+            <span class="card-icon">⏱️</span>
+            <h2 class="card-title">Pomodoro</h2>
+            <span id="session-badge" class="session-badge">Sesi ke-<span id="sesh-num">1</span></span>
+          </div>
+          <div class="pomo-body">
+            <div class="pomo-left">
+              <div class="timer-wrap">
+                <svg class="timer-svg" viewBox="0 0 140 140">
+                  <circle class="ring-bg" cx="70" cy="70" r="62"/>
+                  <circle id="ring-prog" class="ring-fg" cx="70" cy="70" r="62"/>
+                </svg>
+                <div class="timer-inner">
+                  <div id="timer-display" class="timer-num">25:00</div>
+                  <div id="timer-label" class="timer-lbl">Focus Time!</div>
+                </div>
+              </div>
+            </div>
+            <div class="pomo-right">
+              <div class="mode-tabs">
+                <button class="mtab active"><span class="mtab-emoji">🧠</span> Focus 25min</button>
+                <button class="mtab"><span class="mtab-emoji">☕</span> Break 5min</button>
+                <button class="mtab"><span class="mtab-emoji">🛋️</span> Long Break 15min</button>
+              </div>
+              <div class="timer-controls">
+                <div class="timer-ctrl-group">
+                  <button id="toggle-btn" class="btn-play">
+                    <svg id="play-icon" class="ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <svg id="pause-icon" class="ic hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  </button>
+                  <button id="reset-btn" class="btn-ctrl" title="Reset timer">
+                    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-6.59"/></svg>
+                  </button>
+                  <button id="skip-btn" class="btn-ctrl" title="Skip sesi">
+                    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                  </button>
+                </div>
+                <div id="sesh-dots" class="sesh-dots">
+                  <div class="sdot"></div><div class="sdot"></div><div class="sdot"></div><div class="sdot"></div>
+                </div>
+                <button id="reset-sesh-btn" class="btn-icon-sm" title="Reset sesi">↺</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LO-FI MIXER — REVAMPED WITH YOUTUBE -->
+        <section class="card card-mixer">
+          <div class="card-header">
+            <span class="card-icon">🎵</span>
+            <h2 class="card-title">Lo-Fi Mixer</h2>
+            <button id="open-yt-custom" class="btn-yt-add" title="Tambah YouTube URL">+ YouTube</button>
+          </div>
+
+          <!-- YouTube Player (hidden, audio only) -->
+          <div id="yt-player-wrap" class="yt-player-wrap">
+            <div id="yt-player"></div>
+            <div id="yt-now-playing" class="yt-now-playing hidden">
+              <span class="yt-np-icon">▶️</span>
+              <span id="yt-np-label" class="yt-np-label">Custom Track</span>
+              <button id="yt-stop-btn" class="yt-stop-btn" title="Stop YouTube">■</button>
+              <input type="range" id="yt-vol" class="mix-slider" min="0" max="100" step="5" value="50"/>
+              <span id="yt-vol-pct" class="mix-percentage">50%</span>
+            </div>
+          </div>
+
+          <!-- Built-in presets -->
+          <div class="mixer-presets">
+            <p class="mixer-section-label">🎧 Preset Lo-Fi</p>
+            <div class="mixer-grid">
+              <div class="mix-box">
+                <div class="mix-top">
+                  <span class="mix-emoji">☀️</span>
+                  <span class="mix-title">Morning Vibes</span>
+                  <span id="lofi1-pct" class="mix-percentage">0%</span>
+                </div>
+                <input type="range" id="lofi1-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+                <audio id="lofi1-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
+              </div>
+              <div class="mix-box">
+                <div class="mix-top">
+                  <span class="mix-emoji">🌿</span>
+                  <span class="mix-title">Chill Study</span>
+                  <span id="lofi2-pct" class="mix-percentage">0%</span>
+                </div>
+                <input type="range" id="lofi2-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+                <audio id="lofi2-audio" loop src="https://cdn.pixabay.com/download/audio/2026/03/10/audio_64b4580116.mp3"></audio>
+              </div>
+              <div class="mix-box">
+                <div class="mix-top">
+                  <span class="mix-emoji">☕</span>
+                  <span class="mix-title">Café Beats</span>
+                  <span id="lofi3-pct" class="mix-percentage">0%</span>
+                </div>
+                <input type="range" id="lofi3-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+                <audio id="lofi3-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/22/audio_1364f85847.mp3"></audio>
+              </div>
+              <div class="mix-box">
+                <div class="mix-top">
+                  <span class="mix-emoji">🌧️</span>
+                  <span class="mix-title">Rainy Lo-Fi</span>
+                  <span id="lofi4-pct" class="mix-percentage">0%</span>
+                </div>
+                <input type="range" id="lofi4-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+                <audio id="lofi4-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/21/audio_b2f30c12e1.mp3"></audio>
+              </div>
+            </div>
+          </div>
+
+          <!-- YouTube Lofi Presets -->
+          <div class="mixer-yt-presets">
+            <p class="mixer-section-label">▶️ YouTube Lofi Presets</p>
+            <div class="yt-preset-list">
+              <button class="yt-preset-btn" data-vid="jfKfPfyJRdk" data-label="Lofi Girl — beats to relax/study to">🎵 Lofi Girl</button>
+              <button class="yt-preset-btn" data-vid="5qap5aO4i9A" data-label="Lofi Hip Hop Radio">🌙 Lofi Hip Hop</button>
+              <button class="yt-preset-btn" data-vid="Na0w3Mz46GA" data-label="Coffee Shop Ambience">☕ Coffee Shop</button>
+              <button class="yt-preset-btn" data-vid="q76bMs-NwRk" data-label="Study Music — Deep Focus">🧠 Deep Focus</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TODO LIST -->
+        <section class="card card-todo">
+          <div class="card-header">
+            <span class="card-icon">📋</span>
+            <h2 class="card-title">Target Hari Ini</h2>
+            <button id="clear-notes" class="btn-icon-sm" title="Hapus semua">🗑️</button>
+          </div>
+          <div class="todo-inner">
+            <div id="todo-list" class="todo-list-scroll"></div>
+            <div class="todo-add-row">
+              <input type="text" id="todo-input" class="text-input" placeholder="Tambah target baru…" maxlength="80"/>
+              <button id="add-todo" class="btn-add">+</button>
+            </div>
+            <div class="todo-stats" id="todo-stats"></div>
+          </div>
+        </section>
+
+      </aside>
+
+      <main class="dashboard-right-main">
+        <section class="card card-chat-layout-container">
+
+          <div class="chat-main-stream">
+            <div class="card-header">
+              <span class="card-icon">💬</span>
+              <h2 class="card-title" id="room-status">Belum bergabung ke ruangan</h2>
+              <button id="delete-room-btn" class="btn-danger-sm hidden" title="Hapus ruangan (hanya owner)">🗑️ Hapus</button>
+            </div>
+
+            <div id="chat-section" class="chat-section-wrapper" style="display:none;">
+
+              <!-- Reply Preview Bar -->
+              <div id="reply-preview" class="reply-preview hidden">
+                <span class="reply-icon">↩️</span>
+                <div class="reply-preview-content">
+                  <span class="reply-to-name" id="reply-to-name"></span>
+                  <span class="reply-to-text" id="reply-to-text"></span>
+                </div>
+                <button id="cancel-reply" class="reply-cancel-btn">✕</button>
+              </div>
+
+              <div id="chat-box" class="chat-box-stream"></div>
+
+              <!-- Typing Indicator -->
+              <div id="typing-indicator" class="typing-indicator hidden">
+                <div class="typing-bubble"><span></span><span></span><span></span></div>
+                <span id="typing-text" class="typing-text"></span>
+              </div>
+
+              <!-- Image upload hidden input -->
+              <input type="file" id="img-upload-input" accept="image/*" style="display:none;"/>
+
+              <div class="chat-input-row">
+                <button id="emoji-btn" class="btn-chat-action" title="Emoji">😊</button>
+                <button id="img-upload-btn" class="btn-chat-action" title="Kirim Gambar">🖼️</button>
+                <input type="text" id="chat-input" class="text-input" placeholder="Kirim pesan semangat… 💪"/>
+                <button id="send-btn" class="btn-send">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+
+              <div class="react-bar" id="react-bar">
+                <button class="rbtn" data-msg="Semangat! 💪">💪</button>
+                <button class="rbtn" data-msg="Fokus bareng! 🎯">🎯</button>
+                <button class="rbtn" data-msg="Istirahat dulu ☕">☕</button>
+                <button class="rbtn" data-msg="Aku selesai! 🎉">🎉</button>
+                <button class="rbtn" data-msg="Jangan nyerah! 🌟">🌟</button>
+                <button id="notif-toggle-btn" class="rbtn" title="Matikan notifikasi">🔔</button>
+              </div>
+            </div>
+
+            <div id="chat-placeholder-hint" class="chat-empty-hint">
+              <p>☕ Sesi obrolan terkunci. Silakan cari atau pilih ruangan di panel sebelah kanan!</p>
+            </div>
+          </div>
+
+          <div class="chat-room-sidebar">
+            <div class="sidebar-room-search">
+              <p class="sidebar-micro-title">🚪 Cari / Bergabung</p>
+              <div class="room-search-input-group">
+                <input type="text" id="room-input" class="text-input" placeholder="nama-ruangan..."/>
+                <button id="join-btn" class="btn-primary" style="padding: 0 14px;">Masuk</button>
+              </div>
+              <button id="open-create-room-btn" class="btn-create-room">+ Buat Ruangan Baru</button>
+            </div>
+
+            <div id="members-wrap" class="sidebar-members-section" style="display:none;">
+              <p class="sidebar-micro-title">👀 Teman di Ruang Ini</p>
+              <div id="members-list" class="sidebar-members-list"></div>
+            </div>
+
+            <div class="sidebar-active-rooms">
+              <p class="sidebar-micro-title">🌐 Ruangan Aktif Sekarang</p>
+              <div id="active-rooms-list" class="sidebar-active-rooms-list">
+                <span class="no-rooms-hint">Tidak ada ruangan aktif, yuk buat dulu!</span>
+              </div>
+            </div>
+
+            <!-- DAILY QUOTE -->
+            <div class="sidebar-quote-box">
+              <p class="sidebar-micro-title">💡 Kata Semangat</p>
+              <div id="daily-quote" class="daily-quote-text">Memuat kutipan...</div>
+              <button id="next-quote-btn" class="btn-next-quote">Kutipan lain ↺</button>
+            </div>
+          </div>
+
+        </section>
+      </main>
+
+    </div>
+
+    <!-- FAB -->
+    <button id="focus-fab" class="focus-fab" title="Focus Mode">🎯</button>
+
+    <!-- FOCUS OVERLAY -->
+    <div id="focus-overlay" class="focus-overlay hidden">
+      <div class="focus-content">
+        <p class="focus-sub" id="focus-sub-txt">Focus Time!</p>
+        <div class="focus-ring-wrap">
+          <svg viewBox="0 0 200 200" width="200" height="200">
+            <circle class="ring-bg" cx="100" cy="100" r="82"/>
+            <circle id="focus-ring" class="ring-fg" cx="100" cy="100" r="82"/>
+          </svg>
+          <div class="focus-timer-overlay">
+            <div id="focus-timer-big" class="focus-big">25:00</div>
+          </div>
+        </div>
+        <div class="focus-status-row">
+          <span class="focus-status-label">Status kamu:</span>
+          <div class="focus-status-btns">
+            <button class="fstatus-btn active" data-status="focus">🧠 Fokus</button>
+            <button class="fstatus-btn" data-status="break">☕ Istirahat</button>
+            <button class="fstatus-btn" data-status="idle">💤 Santai</button>
+            <button class="fstatus-btn" data-status="studying">📚 Belajar</button>
+          </div>
+        </div>
+        <button id="exit-focus" class="btn-exit">← Kembali ke Ruangan</button>
       </div>
     </div>
+
   </div>
 
-  <div id="delete-room-modal" class="modal-backdrop hidden">
-    <div class="modal-card border-danger-card">
-      <h4 class="text-danger">Konfirmasi Hapus Ruangan</h4>
-      <p class="modal-subtitle">Apakah kamu yakin ingin menghapus ruangan ini secara permanen dari server? Semua pesan obrolan di dalamnya akan ikut terhapus dan seluruh rekan di kamar ini akan otomatis dikeluarkan.</p>
-      <div class="modal-actions">
-        <button id="cancel-delete-room" class="secondary-btn">Batal</button>
-        <button id="confirm-delete-room" class="danger-btn">Ya, Hapus Sekarang 🗑️</button>
-      </div>
-    </div>
-  </div>
+  <!-- WARM SCREEN FILTER -->
+  <div id="warm-filter" class="warm-filter"></div>
 
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script type="module" src="script.js"></script>
 </body>
 </html>
