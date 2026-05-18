@@ -1341,7 +1341,7 @@ function clearReply() {
 if (replyBarCancel) replyBarCancel.addEventListener('click', clearReply);
 
 // ── KAZU AI (GEMINI) ──
-const GEMINI_API_KEY = 'AIzaSyD2R4zNqkPaiTDeCxV2dveU_hEmkOzhD2Y'; 
+const GEMINI_API_KEY = 'AIzaSyAyo6INclWd1oSh9-z28HsviRulL-lameU'; 
 const KAZU_NAME = 'Kazu';
 const KAZU_AVATAR = '☕';
 const KAZU_UID = '__kazu_ai__';
@@ -1356,7 +1356,7 @@ async function askKazu(userText, senderName) {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
