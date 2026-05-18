@@ -1042,3 +1042,331 @@ body {
   color: var(--accent-deep);
   font-size: 12.5px;
 }
+
+/* ══════════════════════════════════════════
+   MOBILE BOTTOM NAV
+══════════════════════════════════════════ */
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — TABLET (≤ 900px)
+══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .app-wrapper { padding: 10px; gap: 8px; }
+
+  /* Header compact */
+  .app-header {
+    grid-template-columns: auto 1fr auto;
+    padding: 6px 12px;
+    height: auto;
+    min-height: 50px;
+    gap: 8px;
+  }
+  .brand-text { display: none; }
+  .header-center { gap: 6px; }
+  .sesh-badge { font-size: 11px; padding: 2px 8px; }
+  .btn-reset-pomo { display: none; }
+  .header-timer-num { font-size: 13px; }
+
+  /* Stack dashboard */
+  .main-dashboard-grid {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+  .dashboard-left-aside {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: visible;
+  }
+  .card-pomo { grid-column: 1 / -1; }
+  .dashboard-right-main { min-height: 400px; }
+
+  .chat-room-sidebar { width: 220px; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤ 640px)
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* ─ Wrapper ─ */
+  .app-wrapper {
+    padding: 0;
+    gap: 0;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* ─ Decorations hide ─ */
+  .deco, .cafe-bg, .cafe-overlay { display: none; }
+
+  /* ─ Header ─ */
+  .app-header {
+    border-radius: 0;
+    border-left: none; border-right: none; border-top: none;
+    border-bottom: 3px solid var(--card-border);
+    box-shadow: 0 3px 0 var(--card-border);
+    height: 52px;
+    padding: 0 12px;
+    grid-template-columns: auto 1fr auto;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .brand-icon { font-size: 20px; }
+  .brand-text { display: none; }
+  .header-center { gap: 5px; justify-content: center; }
+  .sesh-badge { font-size: 10px; padding: 2px 7px; }
+  .btn-reset-pomo { display: none; }
+  .header-timer-strip { padding: 2px 7px; gap: 3px; }
+  .header-timer-num { font-size: 13px; }
+  .header-play-btn { width: 20px; height: 20px; font-size: 8px; }
+  .header-right { gap: 5px; }
+  .online-pill { display: none; }
+  .btn-header-icon { width: 28px; height: 28px; font-size: 14px; }
+  .status-selector-wrap { display: none; }
+  .widget-name { display: none; }
+  .user-profile-widget { padding: 2px 6px; border-radius: 50%; width: 30px; height: 30px; justify-content: center; }
+  .widget-avatar { font-size: 16px; }
+
+  /* ─ Main grid: single column, fill height ─ */
+  .main-dashboard-grid {
+    grid-template-columns: 1fr;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    gap: 0;
+  }
+
+  /* ─ Left aside becomes tab panels ─ */
+  .dashboard-left-aside {
+    display: contents; /* children managed by tab system */
+  }
+
+  /* ─ Tab panels: hidden by default ─ */
+  .card-pomo,
+  .card-mixer,
+  .card-todo {
+    display: none;
+    position: fixed;
+    inset: 52px 0 60px 0;
+    z-index: 50;
+    border-radius: 0;
+    border-left: none; border-right: none;
+    border-top: 3px solid var(--card-border);
+    overflow-y: auto;
+    margin: 0;
+    animation: slideUp 0.22s cubic-bezier(0.34,1.4,0.64,1) both;
+  }
+  .card-pomo.mobile-active,
+  .card-mixer.mobile-active,
+  .card-todo.mobile-active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─ Chat panel ─ */
+  .dashboard-right-main {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .card-chat-layout-container {
+    border-radius: 0;
+    border-left: none; border-right: none;
+    height: calc(100dvh - 52px - 60px);
+    flex-direction: column;
+  }
+  .chat-main-stream {
+    border-right: none;
+    border-bottom: 2px solid var(--card-border);
+    flex: 1;
+    min-height: 0;
+    padding: 10px;
+  }
+  .chat-box-stream { margin-bottom: 8px; }
+
+  /* Hide sidebar panel — accessible via rooms tab feel */
+  .chat-room-sidebar {
+    display: none;
+    position: fixed;
+    inset: 52px 0 60px 0;
+    z-index: 50;
+    width: 100%;
+    border-radius: 0;
+    border: none;
+    border-top: 3px solid var(--card-border);
+    overflow-y: auto;
+    animation: slideUp 0.22s cubic-bezier(0.34,1.4,0.64,1) both;
+  }
+  .chat-room-sidebar.mobile-active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* When rooms sidebar is open, hide chat stream */
+  .chat-room-sidebar.mobile-active ~ .chat-main-stream,
+  .card-chat-layout-container.sidebar-open .chat-main-stream {
+    display: none;
+  }
+
+  /* ─ React bar: scrollable ─ */
+  .react-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    gap: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .react-bar::-webkit-scrollbar { display: none; }
+  .rbtn { flex-shrink: 0; font-size: 13px; padding: 4px 8px; }
+
+  /* ─ Pomodoro mobile layout ─ */
+  .pomo-body {
+    flex-direction: row;
+    padding: 16px;
+    gap: 16px;
+    justify-content: center;
+  }
+  .timer-wrap { width: 140px; height: 140px; }
+  .timer-num { font-size: 26px; }
+  .pomo-right { flex: 1; max-width: 180px; }
+  .mode-tabs { flex-direction: row; gap: 6px; }
+  .mtab { font-size: 12px; padding: 6px 8px; flex: 1; justify-content: center; }
+  .mtab-emoji { display: none; }
+  .timer-controls { justify-content: center; gap: 12px; }
+  .btn-play { width: 52px; height: 52px; }
+
+  /* ─ Mixer mobile ─ */
+  .card-mixer { padding: 14px; }
+  .mixer-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .yt-preset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .yt-preset-btn { font-size: 11px; padding: 7px 8px; }
+
+  /* ─ Todo mobile ─ */
+  .todo-inner { max-height: none; flex: 1; }
+  .todo-list-scroll { max-height: calc(100dvh - 260px); }
+
+  /* ─ Bottom nav ─ */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--card-bg);
+    border-top: 3px solid var(--card-border);
+    box-shadow: 0 -3px 0 var(--card-border);
+    z-index: 200;
+    align-items: stretch;
+  }
+  .mbn-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 4px 0;
+    color: var(--text-muted);
+    border-right: 2px solid var(--card-border);
+    font-family: var(--font-body);
+  }
+  .mbn-btn:last-child { border-right: none; }
+  .mbn-btn.active {
+    background: var(--peach);
+    color: var(--text-main);
+  }
+  .mbn-btn.active .mbn-icon { transform: scale(1.15); }
+  .mbn-icon { font-size: 20px; line-height: 1; transition: transform 0.2s; }
+  .mbn-label { font-size: 10px; font-weight: 700; }
+
+  /* ─ FAB repositioned ─ */
+  .focus-fab {
+    bottom: 70px;
+    right: 12px;
+    width: 40px; height: 40px;
+    font-size: 18px;
+    z-index: 201;
+  }
+
+  /* ─ Toast adjust ─ */
+  #chat-toast {
+    bottom: 70px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+
+  /* ─ Modals full bottom-sheet style ─ */
+  .modal-overlay { align-items: flex-end; }
+  .modal-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 24px 24px 0 0;
+    border-bottom: none;
+    box-shadow: 0 -4px 0 var(--card-border);
+    padding: 24px 20px 32px;
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+  .profile-modal { align-items: flex-end; }
+  .profile-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 24px 24px 0 0;
+    border-bottom: none;
+    box-shadow: 0 -4px 0 var(--card-border);
+    padding: 20px 16px 32px;
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+
+  /* ─ Login screen mobile ─ */
+  .login-scene { padding: 12px; }
+  .login-card {
+    padding: 24px 20px 32px;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 100%;
+  }
+  .login-vertical { gap: 14px; }
+  .login-title { font-size: 32px; }
+
+  /* ─ Theme panel mobile ─ */
+  .theme-panel {
+    top: auto !important;
+    right: 0 !important;
+    bottom: 68px;
+    left: 0;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+  }
+  .theme-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+  /* ─ Cards general padding ─ */
+  .card { padding: 14px; }
+  .card-header { margin-bottom: 10px; }
+
+  /* ─ Room owner info wrap fix ─ */
+  .room-owner-info { font-size: 11px; }
+
+  /* ─ Input & button touch targets ─ */
+  .text-input { font-size: 16px; /* prevent iOS zoom */ min-height: 40px; }
+  .btn-primary, .btn-google { min-height: 44px; }
+
+  /* ─ Chat rooms toggle button ─ */
+  .chat-rooms-toggle {
+    display: flex;
+  }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
