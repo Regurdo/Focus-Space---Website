@@ -498,10 +498,15 @@
         <section class="card card-chat-layout-container">
           
           <div class="chat-main-stream">
-            <div class="card-header">
+            <div class="card-header" style="flex-wrap:wrap; row-gap:2px;">
               <span class="card-icon">💬</span>
               <h2 class="card-title" id="room-status">Belum bergabung ke ruangan</h2>
               <button id="delete-room-btn" class="btn-danger-sm hidden" title="Hapus ruangan (hanya owner)">🗑️ Hapus</button>
+              <div id="room-owner-info" class="room-owner-info hidden">
+                <span class="room-owner-crown">👑</span>
+                <span class="room-owner-label">Dibuat oleh</span>
+                <span id="room-owner-name" class="room-owner-name"></span>
+              </div>
             </div>
             
             <div id="chat-section" class="chat-section-wrapper" style="display:none;">
