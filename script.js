@@ -264,6 +264,118 @@ audioSliders.forEach(({ slider, audio, pct }) => {
   sync();
 });
 
+// ═══════════════════════════════════════════════
+//  YOUTUBE PLAYER
+// ═══════════════════════════════════════════════
+let ytPlayer = null;
+let ytReady = false;
+let currentYtVid = null;
+let activePresetBtn = null;
+
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('yt-player', {
+    height: '0', width: '0',
+    playerVars: { autoplay: 0, controls: 0 },
+    events: {
+      onReady: () => { ytReady = true; },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED) stopYouTube();
+      }
+    }
+  });
+};
+
+function extractYtId(url) {
+  const patterns = [
+    /youtu\.be\/([^?&]+)/,
+    /[?&]v=([^?&]+)/,
+    /youtube\.com\/embed\/([^?&]+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  if (/^[A-Za-z0-9_-]{11}$/.test(url.trim())) return url.trim();
+  return null;
+}
+
+function playYouTube(videoId, label) {
+  if (!ytReady || !ytPlayer) {
+    showChatToast('FocusSpace', '⏳ YouTube player belum siap, coba lagi sebentar!');
+    return;
+  }
+  currentYtVid = videoId;
+  ytPlayer.loadVideoById(videoId);
+  const vol = parseInt($('yt-vol')?.value || '70');
+  ytPlayer.setVolume(vol);
+  ytPlayer.playVideo();
+  const nowPlaying = $('yt-now-playing');
+  const npLabel = $('yt-np-label');
+  if (nowPlaying) nowPlaying.classList.remove('hidden');
+  if (npLabel) npLabel.textContent = label || 'Custom Track';
+}
+
+function stopYouTube() {
+  if (ytPlayer && ytReady) ytPlayer.stopVideo();
+  currentYtVid = null;
+  const nowPlaying = $('yt-now-playing');
+  if (nowPlaying) nowPlaying.classList.add('hidden');
+  if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+}
+
+// YouTube volume
+const ytVol = $('yt-vol');
+const ytVolPct = $('yt-vol-pct');
+if (ytVol) {
+  ytVol.addEventListener('input', () => {
+    const v = parseInt(ytVol.value);
+    if (ytPlayer && ytReady) ytPlayer.setVolume(v);
+    if (ytVolPct) ytVolPct.textContent = `${v}%`;
+  });
+}
+
+// Stop button
+const ytStopBtn = $('yt-stop-btn');
+if (ytStopBtn) ytStopBtn.addEventListener('click', stopYouTube);
+
+// YouTube preset buttons
+document.querySelectorAll('.yt-preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const vid = btn.dataset.vid;
+    const label = btn.dataset.label;
+    if (activePresetBtn === btn) { stopYouTube(); return; }
+    if (activePresetBtn) activePresetBtn.classList.remove('playing');
+    activePresetBtn = btn;
+    btn.classList.add('playing');
+    playYouTube(vid, label);
+  });
+});
+
+// YouTube Custom URL Modal
+const openYtCustom  = $('open-yt-custom');
+const ytCustomModal = $('yt-custom-modal');
+const ytCustomConfirm = $('yt-custom-confirm');
+const ytCustomCancel  = $('yt-custom-cancel');
+
+if (openYtCustom) openYtCustom.addEventListener('click', () => ytCustomModal && ytCustomModal.classList.remove('hidden'));
+if (ytCustomCancel) ytCustomCancel.addEventListener('click', () => ytCustomModal && ytCustomModal.classList.add('hidden'));
+if (ytCustomConfirm) {
+  ytCustomConfirm.addEventListener('click', () => {
+    const urlInput   = $('yt-custom-url');
+    const labelInput = $('yt-custom-label');
+    const url   = urlInput   ? urlInput.value.trim() : '';
+    const label = labelInput ? labelInput.value.trim() || 'Custom Track' : 'Custom Track';
+    if (!url) { if (urlInput) urlInput.focus(); return; }
+    const vid = extractYtId(url);
+    if (!vid) { showChatToast('FocusSpace', '❌ URL YouTube tidak valid!'); return; }
+    if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+    playYouTube(vid, label);
+    ytCustomModal.classList.add('hidden');
+    if (urlInput) urlInput.value = '';
+    if (labelInput) labelInput.value = '';
+  });
+}
+
 // ── TODO LIST ──
 const todoList  = $('todo-list');
 const todoInput = $('todo-input');
@@ -517,16 +629,7 @@ function initQuote() {
   if (btn) btn.addEventListener('click', showNextQuote);
 }
 
-// ── FIREBASE ──
-import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getDatabase, ref, onValue, onDisconnect, set, push, onChildAdded, remove, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-
+// ── FIREBASE v8 (global SDK) ──
 const firebaseConfig = {
   apiKey: "AIzaSyDTo8H7OV0XZtcAdJrk2fnXXsLiMDXlTmw",
   authDomain: "focus-space-f158e.firebaseapp.com",
@@ -537,10 +640,20 @@ const firebaseConfig = {
   appId: "1:947141512235:web:fbca8bcb5c3b98906e2e6e"
 };
 
-const app            = initializeApp(firebaseConfig);
-const auth           = getAuth(app);
-const db             = getDatabase(app);
-const googleProvider = new GoogleAuthProvider();
+const fbApp = firebase.initializeApp(firebaseConfig);
+const auth  = firebase.auth(fbApp);
+const db    = firebase.database(fbApp);
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// Helper aliases — wraps Firebase v8 API to match original code style
+function ref(dbInst, path)   { return dbInst.ref(path); }
+function onValue(r, cb)      { const h = s => cb(s); r.on('value', h); return () => r.off('value', h); }
+function onChildAdded(r, cb) { const h = s => cb(s); r.on('child_added', h); return () => r.off('child_added', h); }
+function set(r, val)         { return r.set(val); }
+function push(r, val)        { return r.push(val); }
+function remove(r)           { return r.remove(); }
+function onDisconnect(r)     { return r.onDisconnect(); }
+async function get(r)        { return r.once('value'); }
 
 let username    = '';
 let userAvatar  = '👤';
@@ -580,7 +693,7 @@ function handleLoginSuccess(uid, displayName, avatar, guest = false) {
 const googleLoginBtn = $('google-login-btn');
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', () => {
-    signInWithPopup(auth, googleProvider).then(result => {
+    auth.signInWithPopup(googleProvider).then(result => {
       const u = result.user;
       handleLoginSuccess(u.uid, u.displayName || 'Pengguna', '🐱');
     }).catch(err => {
@@ -618,7 +731,7 @@ if (logoutBtn) {
     // Leave room first
     if (roomName) leaveRoom();
     if (!isGuest) {
-      try { await signOut(auth); } catch(e) {}
+      try { await auth.signOut(); } catch(e) {}
     }
     // Reset UI
     username = ''; userAvatar = '👤'; userUid = ''; isGuest = false;
@@ -943,6 +1056,83 @@ function listenToActiveRooms() {
 }
 
 // ── CHAT ──
+// Image Lightbox
+const imgLightbox      = $('img-lightbox');
+const imgLightboxImg   = $('img-lightbox-img');
+const imgLightboxClose = $('img-lightbox-close');
+const imgLightboxBg    = imgLightbox ? imgLightbox.querySelector('.img-lightbox-bg') : null;
+
+function openLightbox(src) {
+  if (!imgLightbox || !imgLightboxImg) return;
+  imgLightboxImg.src = src;
+  imgLightbox.classList.remove('hidden');
+}
+function closeLightbox() {
+  if (imgLightbox) imgLightbox.classList.add('hidden');
+}
+if (imgLightboxClose) imgLightboxClose.addEventListener('click', closeLightbox);
+if (imgLightboxBg)    imgLightboxBg.addEventListener('click', closeLightbox);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+
+// Pending image to send
+let pendingImageData = null;
+
+// Image preview UI
+const imgPreviewBar    = $('img-preview-bar');
+const imgPreviewThumb  = $('img-preview-thumb');
+const imgPreviewName   = $('img-preview-name');
+const imgPreviewCancel = $('img-preview-cancel');
+
+function showImagePreview(dataUrl, name) {
+  pendingImageData = dataUrl;
+  if (imgPreviewThumb) imgPreviewThumb.src = dataUrl;
+  if (imgPreviewName)  imgPreviewName.textContent = name || 'gambar';
+  if (imgPreviewBar)   imgPreviewBar.classList.remove('hidden');
+}
+function clearImagePreview() {
+  pendingImageData = null;
+  if (imgPreviewBar)  imgPreviewBar.classList.add('hidden');
+  if (imgPreviewThumb) imgPreviewThumb.src = '';
+  if (imgPreviewName) imgPreviewName.textContent = '';
+  const inp = $('img-upload-input');
+  if (inp) inp.value = '';
+}
+if (imgPreviewCancel) imgPreviewCancel.addEventListener('click', clearImagePreview);
+
+// File input handler
+const imgUploadBtn   = $('img-upload-btn');
+const imgUploadInput = $('img-upload-input');
+if (imgUploadBtn) imgUploadBtn.addEventListener('click', () => imgUploadInput && imgUploadInput.click());
+if (imgUploadInput) {
+  imgUploadInput.addEventListener('change', () => {
+    const file = imgUploadInput.files[0];
+    if (!file) return;
+    if (!roomName) { showChatToast('FocusSpace', '⚠️ Masuk ke ruangan dulu!'); return; }
+    if (file.size > 3 * 1024 * 1024) { showChatToast('FocusSpace', '❌ Gambar terlalu besar (maks 3MB)!'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => showImagePreview(e.target.result, file.name);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Paste image from clipboard
+document.addEventListener('paste', (e) => {
+  if (!roomName) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => showImagePreview(ev.target.result, 'clipboard');
+        reader.readAsDataURL(file);
+      }
+      break;
+    }
+  }
+});
+
 function appendMessage(msg) {
   const el = document.createElement('div');
   el.className = 'chat-msg' + (msg.sender === username ? ' own' : '');
@@ -951,12 +1141,23 @@ function appendMessage(msg) {
   const timeEl = document.createElement('span');
   timeEl.className = 't'; timeEl.textContent = msg.time;
   el.appendChild(senderEl);
-  el.append(' ' + esc(msg.text) + ' ');
+
+  if (msg.type === 'image' && msg.imageData) {
+    const img = document.createElement('img');
+    img.className = 'chat-img';
+    img.src = msg.imageData;
+    img.alt = 'Gambar';
+    img.addEventListener('click', () => openLightbox(msg.imageData));
+    el.appendChild(img);
+  } else {
+    el.append(' ' + esc(msg.text || '') + ' ');
+  }
+
   el.appendChild(timeEl);
   if (chatBox) { chatBox.appendChild(el); chatBox.scrollTop = chatBox.scrollHeight; }
   if (chatNotifEnabled && msg.sender !== username) {
     playNotifSound('chat');
-    showChatToast(msg.sender, msg.text);
+    showChatToast(msg.sender, msg.type === 'image' ? '🖼️ Mengirim gambar' : msg.text);
   }
 }
 
@@ -964,12 +1165,24 @@ function sendMsg(text) {
   if (!text || !roomName) return;
   const now  = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  push(ref(db, `rooms/${roomName}/messages`), { sender: username, text, time });
+  push(ref(db, `rooms/${roomName}/messages`), { sender: username, text, time, type: 'text' });
+}
+
+function sendImageMsg(base64Data) {
+  if (!base64Data || !roomName) return;
+  const now  = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  push(ref(db, `rooms/${roomName}/messages`), { sender: username, text: '🖼️ Gambar', imageData: base64Data, time, type: 'image' });
 }
 
 const sendBtn = $('send-btn');
 if (sendBtn) {
   sendBtn.addEventListener('click', () => {
+    if (pendingImageData) {
+      sendImageMsg(pendingImageData);
+      clearImagePreview();
+      return;
+    }
     const t = chatInput ? chatInput.value.trim() : '';
     if (t) { sendMsg(t); chatInput.value = ''; }
   });
@@ -977,6 +1190,11 @@ if (sendBtn) {
 if (chatInput) {
   chatInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') {
+      if (pendingImageData) {
+        sendImageMsg(pendingImageData);
+        clearImagePreview();
+        return;
+      }
       const t = chatInput.value.trim();
       if (t) { sendMsg(t); chatInput.value = ''; }
     }
