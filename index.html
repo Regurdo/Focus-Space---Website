@@ -162,17 +162,26 @@
 
   <!-- YOUTUBE CUSTOM URL MODAL -->
   <div id="yt-custom-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <h3 class="modal-title">🎵 Custom Audio YouTube</h3>
-      <p class="modal-sub">Tempel URL YouTube untuk diputar sebagai audio lo-fi kustom kamu!</p>
-      <label class="form-label">Label (nama track):</label>
-      <input type="text" id="yt-custom-label" class="text-input" placeholder="mis. Lofi favoritku…" maxlength="30" autocomplete="off" style="margin-bottom:10px;"/>
+    <div class="modal-card" style="max-width:420px;">
+      <h3 class="modal-title">🎵 YouTube Presets Kamu</h3>
+      <p class="modal-sub">Tambah & kelola preset YouTube pribadimu. Tersimpan otomatis!</p>
+
+      <!-- User preset list -->
+      <div id="user-yt-preset-list" class="user-yt-preset-list">
+        <p class="user-yt-empty" id="user-yt-empty">✨ Belum ada preset. Tambah di bawah!</p>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <p class="form-label" style="margin-bottom:6px;">➕ Tambah Preset Baru:</p>
+      <label class="form-label">Nama / Label:</label>
+      <input type="text" id="yt-custom-label" class="text-input" placeholder="mis. Lofi favoritku…" maxlength="30" autocomplete="off" style="margin-bottom:8px;"/>
       <label class="form-label">URL YouTube:</label>
       <input type="text" id="yt-custom-url" class="text-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"/>
       <p class="guest-note" style="margin-top:6px;">💡 Tip: Gunakan video lofi/musik panjang untuk pengalaman terbaik</p>
       <div class="modal-actions">
-        <button id="yt-custom-confirm" class="btn-primary">▶ Putar</button>
-        <button id="yt-custom-cancel" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
+        <button id="yt-custom-confirm" class="btn-primary">+ Simpan & Putar</button>
+        <button id="yt-custom-cancel" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Tutup</button>
       </div>
     </div>
   </div>
