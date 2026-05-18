@@ -1340,34 +1340,43 @@ function clearReply() {
 
 if (replyBarCancel) replyBarCancel.addEventListener('click', clearReply);
 
-// ── KAZU AI (GEMINI) ──
-const GEMINI_API_KEY = 'AIzaSyAyo6INclWd1oSh9-z28HsviRulL-lameU'; 
+// ── KAZU AI (GROQ) ──
+const GROQ_API_KEY = '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';
 const KAZU_NAME = 'Kazu';
 const KAZU_AVATAR = '☕';
 const KAZU_UID = '__kazu_ai__';
 
 const kazuTyping = $('kazu-typing');
 
-async function askKazu(userText, senderName) {
+async function askKazu(userText, senderName, replyContext = null) {
   if (kazuTyping) kazuTyping.classList.remove('hidden');
 
   const cleanText = userText.replace(/@kazu/gi, '').trim();
-  const fullPrompt = `Kamu adalah Kazu ☕, asisten AI yang ramah dan cozy di FocusSpace — sebuah virtual study café. Kamu membantu pengguna dengan pertanyaan apapun: belajar, motivasi, atau obrolan santai. Gaya bahasa kamu casual, hangat, dan menyenangkan seperti teman belajar. Gunakan bahasa Indonesia. Jawab singkat dan padat (maks 3 kalimat kecuali diminta panjang). Sertakan emoji yang sesuai.\n\n${senderName} berkata: "${cleanText}"`;
+
+  // Kalau ada konteks reply (user balas chat Kazu), sertakan chat sebelumnya
+  const contextPart = replyContext
+    ? `Sebelumnya kamu (Kazu) berkata: "${replyContext}"\n`
+    : '';
+
+  const fullPrompt = `Kamu adalah Kazu ☕, asisten AI yang ramah dan cozy di FocusSpace — sebuah virtual study café. Kamu membantu pengguna dengan pertanyaan apapun: belajar, motivasi, atau obrolan santai. Gaya bahasa kamu casual, hangat, dan menyenangkan seperti teman belajar. Gunakan bahasa Indonesia. Jawab singkat dan padat (maks 3 kalimat kecuali diminta panjang). Sertakan emoji yang sesuai.\n\n${contextPart}${senderName} berkata: "${cleanText}"`;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }]
-        })
-      }
-    );
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: fullPrompt }],
+        max_tokens: 300,
+        temperature: 0.8
+      })
+    });
     const data = await res.json();
     if (kazuTyping) kazuTyping.classList.add('hidden');
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const reply = data?.choices?.[0]?.message?.content;
     if (reply) {
       const now = new Date();
       const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -1497,14 +1506,23 @@ function sendMsg(text) {
   const msgData = {
     sender: username, senderUid: userUid, text, time, type: 'text'
   };
+
+  // Simpan info reply sebelum clearReply()
+  const currentReply = replyTo ? { ...replyTo } : null;
+
   if (replyTo) {
     msgData.replyTo = { sender: replyTo.sender, text: replyTo.text };
     clearReply();
   }
   push(ref(db, `rooms/${roomName}/messages`), msgData);
 
+  // Trigger Kazu kalau: mention @kazu, ATAU reply ke chat Kazu
+  const isReplyToKazu = currentReply && currentReply.sender === KAZU_NAME;
   if (/@kazu/i.test(text)) {
     askKazu(text, username);
+  } else if (isReplyToKazu) {
+    // Kirim konteks chat Kazu sebelumnya supaya balasannya nyambung
+    askKazu(text, username, currentReply.text);
   }
 }
 
