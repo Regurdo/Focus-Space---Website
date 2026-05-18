@@ -1332,27 +1332,148 @@ document.addEventListener('paste', (e) => {
   }
 });
 
+// ── REPLY STATE ──
+let replyTo = null; // { sender, text, msgId }
+
+const replyBar       = $('reply-bar');
+const replyBarName   = $('reply-bar-name');
+const replyBarText   = $('reply-bar-text');
+const replyBarCancel = $('reply-bar-cancel');
+
+function setReply(msg) {
+  replyTo = { sender: msg.sender, text: msg.text || '🖼️ Gambar', msgId: msg.msgId || '' };
+  if (replyBarName) replyBarName.textContent = msg.sender;
+  if (replyBarText) replyBarText.textContent = (msg.text || '🖼️ Gambar').slice(0, 60);
+  if (replyBar) replyBar.classList.remove('hidden');
+  if (chatInput) chatInput.focus();
+}
+
+function clearReply() {
+  replyTo = null;
+  if (replyBar) replyBar.classList.add('hidden');
+}
+
+if (replyBarCancel) replyBarCancel.addEventListener('click', clearReply);
+
+// ── KAZU AI ──
+const GEMINI_API_KEY = 'AIzaSyDemo_REPLACE_WITH_YOUR_KEY'; // Ganti dengan API key Gemini kamu
+const KAZU_NAME = 'Kazu';
+const KAZU_AVATAR = '☕';
+const KAZU_UID = '__kazu_ai__';
+
+const kazuTyping = $('kazu-typing');
+
+async function askKazu(userText, senderName) {
+  if (kazuTyping) kazuTyping.classList.remove('hidden');
+  const systemPrompt = `Kamu adalah Kazu ☕, asisten AI yang ramah dan cozy di FocusSpace — sebuah virtual study café. Kamu membantu pengguna dengan pertanyaan apapun: belajar, motivasi, atau obrolan santai. Gaya bahasa kamu casual, hangat, dan menyenangkan seperti teman belajar. Gunakan bahasa Indonesia. Jawab singkat dan padat (maks 3 kalimat kecuali diminta panjang). Sertakan emoji yang sesuai.`;
+
+  // Bersihkan @kazu dari teks
+  const cleanText = userText.replace(/@kazu/gi, '').trim();
+  const prompt = `${senderName} berkata: "${cleanText}"`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: prompt }] }]
+        })
+      }
+    );
+    const data = await res.json();
+    if (kazuTyping) kazuTyping.classList.add('hidden');
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (reply) {
+      const now = new Date();
+      const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      push(ref(db, `rooms/${roomName}/messages`), {
+        sender: KAZU_NAME,
+        senderUid: KAZU_UID,
+        text: reply,
+        time,
+        type: 'text',
+        isKazu: true
+      });
+    } else {
+      const errMsg = data?.error?.message || 'Hmm, aku bingung nih 😅 Coba tanya lagi ya!';
+      const now = new Date();
+      const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      push(ref(db, `rooms/${roomName}/messages`), {
+        sender: KAZU_NAME, senderUid: KAZU_UID,
+        text: `⚠️ ${errMsg}`, time, type: 'text', isKazu: true
+      });
+    }
+  } catch (e) {
+    if (kazuTyping) kazuTyping.classList.add('hidden');
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    push(ref(db, `rooms/${roomName}/messages`), {
+      sender: KAZU_NAME, senderUid: KAZU_UID,
+      text: '⚠️ Waduh, koneksiku bermasalah nih. Coba lagi ya! ☕', time, type: 'text', isKazu: true
+    });
+  }
+}
+
+function renderMentions(text) {
+  return esc(text).replace(/@kazu/gi, '<span class="mention-kazu">@kazu</span>');
+}
+
 function appendMessage(msg) {
   const el = document.createElement('div');
-  el.className = 'chat-msg' + (msg.sender === username ? ' own' : '');
-  const senderEl = document.createElement('strong');
-  senderEl.textContent = msg.sender === username ? 'Kamu' : msg.sender;
-  const timeEl = document.createElement('span');
-  timeEl.className = 't'; timeEl.textContent = msg.time;
-  el.appendChild(senderEl);
+  const isOwn = msg.sender === username;
+  const isKazu = msg.isKazu || msg.senderUid === KAZU_UID;
+  el.className = 'chat-msg' + (isOwn ? ' own' : '') + (isKazu ? ' kazu-msg' : '');
+  el.dataset.msgId = msg.msgId || '';
+  el.dataset.sender = msg.sender || '';
+  el.dataset.text = msg.text || '';
 
-  // Owner badge: check by senderUid (preferred) or sender name
+  // Header row: avatar + name + badges
+  const headerRow = document.createElement('div');
+  headerRow.className = 'chat-msg-header';
+
+  if (isKazu) {
+    const kazuAv = document.createElement('span');
+    kazuAv.className = 'kazu-avatar-badge';
+    kazuAv.textContent = KAZU_AVATAR;
+    headerRow.appendChild(kazuAv);
+  }
+
+  const senderEl = document.createElement('strong');
+  senderEl.textContent = isOwn ? 'Kamu' : msg.sender;
+  headerRow.appendChild(senderEl);
+
+  if (isKazu) {
+    const ai = document.createElement('span');
+    ai.className = 'kazu-ai-badge';
+    ai.textContent = 'AI';
+    headerRow.appendChild(ai);
+  }
+
   const isOwner = roomOwnerUid
     ? (msg.senderUid && msg.senderUid === roomOwnerUid)
     : (roomOwnerName && msg.sender === roomOwnerName);
-  if (isOwner) {
+  if (isOwner && !isKazu) {
     const badge = document.createElement('span');
     badge.className = 'chat-owner-badge';
     badge.title = 'Pemilik Ruangan';
     badge.textContent = '👑 Owner';
-    el.appendChild(badge);
+    headerRow.appendChild(badge);
   }
 
+  el.appendChild(headerRow);
+
+  // Reply quote
+  if (msg.replyTo) {
+    const quote = document.createElement('div');
+    quote.className = 'chat-reply-quote';
+    quote.innerHTML = `<span class="reply-quote-name">${esc(msg.replyTo.sender)}</span><span class="reply-quote-text">${esc((msg.replyTo.text||'').slice(0,60))}</span>`;
+    el.appendChild(quote);
+  }
+
+  // Message body
   if (msg.type === 'image' && msg.imageData) {
     const img = document.createElement('img');
     img.className = 'chat-img';
@@ -1361,14 +1482,40 @@ function appendMessage(msg) {
     img.addEventListener('click', () => openLightbox(msg.imageData));
     el.appendChild(img);
   } else {
-    el.append(' ' + esc(msg.text || '') + ' ');
+    const body = document.createElement('div');
+    body.className = 'chat-msg-body';
+    body.innerHTML = renderMentions(msg.text || '');
+    el.appendChild(body);
   }
 
-  el.appendChild(timeEl);
+  // Footer: time + reply button
+  const footer = document.createElement('div');
+  footer.className = 'chat-msg-footer';
+  const timeEl = document.createElement('span');
+  timeEl.className = 't'; timeEl.textContent = msg.time;
+  footer.appendChild(timeEl);
+
+  // Reply button (only for non-kazu or user can still reply to kazu)
+  const replyBtn = document.createElement('button');
+  replyBtn.className = 'chat-reply-btn';
+  replyBtn.title = 'Balas';
+  replyBtn.innerHTML = '↩';
+  replyBtn.addEventListener('click', () => setReply({
+    sender: msg.sender,
+    text: msg.text,
+    msgId: msg.msgId || ''
+  }));
+  footer.appendChild(replyBtn);
+
+  el.appendChild(footer);
+
   if (chatBox) { chatBox.appendChild(el); chatBox.scrollTop = chatBox.scrollHeight; }
   if (chatNotifEnabled && msg.sender !== username) {
     playNotifSound('chat');
-    showChatToast(msg.sender, msg.type === 'image' ? '🖼️ Mengirim gambar' : msg.text);
+    showChatToast(
+      isKazu ? `☕ ${KAZU_NAME}` : msg.sender,
+      msg.type === 'image' ? '🖼️ Mengirim gambar' : msg.text
+    );
   }
 }
 
@@ -1376,7 +1523,19 @@ function sendMsg(text) {
   if (!text || !roomName) return;
   const now  = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  push(ref(db, `rooms/${roomName}/messages`), { sender: username, senderUid: userUid, text, time, type: 'text' });
+  const msgData = {
+    sender: username, senderUid: userUid, text, time, type: 'text'
+  };
+  if (replyTo) {
+    msgData.replyTo = { sender: replyTo.sender, text: replyTo.text };
+    clearReply();
+  }
+  push(ref(db, `rooms/${roomName}/messages`), msgData);
+
+  // Check if @kazu is mentioned
+  if (/@kazu/i.test(text)) {
+    askKazu(text, username);
+  }
 }
 
 function sendImageMsg(base64Data) {
