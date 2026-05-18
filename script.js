@@ -794,6 +794,7 @@ let unsubscribeUsers = null;
 let unsubscribeMsgs  = null;
 let prevMemberCount  = 0;
 let isGuest = false;
+let currentRoomMembers = []; // for @mention autocomplete
 
 // ── LOGIN ELEMENTS ──
 const loginOverlay = $('login-overlay');
@@ -1174,6 +1175,8 @@ function joinRoom(rn) {
     const data    = snap.val() || {};
     const members = Object.values(data);
     const count   = members.length;
+    // Update global member list for @mention autocomplete
+    currentRoomMembers = members.map(m => m.name);
     if (onlineCount) onlineCount.textContent = `${count} di #${roomName}`;
     if (prevMemberCount > 0 && count > prevMemberCount) playNotifSound('join');
     prevMemberCount = count;
@@ -1373,7 +1376,7 @@ async function askKazu(userText, senderName) {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1570,6 +1573,125 @@ if (chatInput) {
     }
   });
 }
+
+// ── @MENTION AUTOCOMPLETE ──
+(function() {
+  // Create dropdown element
+  const dropdown = document.createElement('div');
+  dropdown.id = 'mention-dropdown';
+  dropdown.className = 'mention-dropdown hidden';
+  document.body.appendChild(dropdown);
+
+  let mentionStart = -1;
+  let selectedIndex = 0;
+
+  function getMentionQuery() {
+    if (!chatInput) return null;
+    const val = chatInput.value;
+    const cursor = chatInput.selectionStart;
+    // Walk backwards from cursor to find @
+    let i = cursor - 1;
+    while (i >= 0 && val[i] !== ' ' && val[i] !== '\n') {
+      if (val[i] === '@') { mentionStart = i; return val.slice(i + 1, cursor); }
+      i--;
+    }
+    mentionStart = -1;
+    return null;
+  }
+
+  function getSuggestions(query) {
+    const q = (query || '').toLowerCase();
+    // Always include Kazu first, then room members (exclude self)
+    const all = [
+      { name: 'kazu', label: 'kazu', isKazu: true },
+      ...currentRoomMembers
+        .filter(n => n !== username)
+        .map(n => ({ name: n, label: n, isKazu: false }))
+    ];
+    return all.filter(s => s.name.toLowerCase().startsWith(q)).slice(0, 6);
+  }
+
+  function positionDropdown() {
+    if (!chatInput) return;
+    const rect = chatInput.getBoundingClientRect();
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+    dropdown.style.width = Math.min(220, rect.width) + 'px';
+  }
+
+  function renderDropdown(suggestions) {
+    if (!suggestions.length) { hideDropdown(); return; }
+    dropdown.innerHTML = '';
+    suggestions.forEach((s, i) => {
+      const item = document.createElement('div');
+      item.className = 'mention-item' + (i === selectedIndex ? ' active' : '');
+      item.innerHTML = s.isKazu
+        ? `<span class="mention-item-av kazu-av">☕</span><span class="mention-item-name">@kazu</span><span class="mention-item-badge">AI</span>`
+        : `<span class="mention-item-av" style="background:${nameToColor(s.name)}">${s.name.charAt(0).toUpperCase()}</span><span class="mention-item-name">@${esc(s.name)}</span>`;
+      item.addEventListener('mousedown', (e) => { e.preventDefault(); insertMention(s.name); });
+      dropdown.appendChild(item);
+    });
+    dropdown.classList.remove('hidden');
+    positionDropdown();
+  }
+
+  function hideDropdown() {
+    dropdown.classList.add('hidden');
+    selectedIndex = 0;
+  }
+
+  function insertMention(name) {
+    if (!chatInput || mentionStart < 0) return;
+    const val = chatInput.value;
+    const cursor = chatInput.selectionStart;
+    const before = val.slice(0, mentionStart);
+    const after  = val.slice(cursor);
+    const inserted = `@${name} `;
+    chatInput.value = before + inserted + after;
+    const newCursor = mentionStart + inserted.length;
+    chatInput.setSelectionRange(newCursor, newCursor);
+    hideDropdown();
+    chatInput.focus();
+  }
+
+  if (chatInput) {
+    chatInput.addEventListener('input', () => {
+      const query = getMentionQuery();
+      if (query !== null) {
+        selectedIndex = 0;
+        renderDropdown(getSuggestions(query));
+      } else {
+        hideDropdown();
+      }
+    });
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (dropdown.classList.contains('hidden')) return;
+      const items = dropdown.querySelectorAll('.mention-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+        items.forEach((el, i) => el.classList.toggle('active', i === selectedIndex));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, 0);
+        items.forEach((el, i) => el.classList.toggle('active', i === selectedIndex));
+      } else if (e.key === 'Enter' || e.key === 'Tab') {
+        const active = dropdown.querySelector('.mention-item.active');
+        if (active) {
+          e.preventDefault();
+          active.dispatchEvent(new MouseEvent('mousedown'));
+        } else {
+          hideDropdown();
+        }
+      } else if (e.key === 'Escape') {
+        hideDropdown();
+      }
+    });
+
+    chatInput.addEventListener('blur', () => setTimeout(hideDropdown, 150));
+  }
+})();
 
 document.querySelectorAll('.rbtn').forEach(btn => {
   if (btn.id !== 'notif-toggle-btn') btn.addEventListener('click', () => sendMsg(btn.dataset.msg));
