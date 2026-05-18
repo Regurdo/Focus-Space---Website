@@ -810,12 +810,54 @@ if (googleLoginBtn) {
 const guestLoginBtn  = $('guest-login-btn');
 const guestNameInput = $('guest-name-input');
 if (guestLoginBtn) {
-  guestLoginBtn.addEventListener('click', () => {
+  guestLoginBtn.addEventListener('click', async () => {
     const name = guestNameInput ? guestNameInput.value.trim() : '';
     if (!name) { guestNameInput && (guestNameInput.style.borderColor = 'var(--red)'); return; }
-    // Generate fake uid for guest
-    const uid = 'guest_' + Math.random().toString(36).slice(2, 10);
-    handleLoginSuccess(uid, name, '🐣', true);
+
+    // Disable button while checking
+    guestLoginBtn.disabled = true;
+    guestLoginBtn.textContent = '⏳ Memeriksa...';
+
+    try {
+      // Cek apakah username sudah dipakai (case-insensitive)
+      const nameKey = name.toLowerCase().replace(/\s+/g, '_');
+      const snap = await get(ref(db, `activeUsernames/${nameKey}`));
+      if (snap.exists()) {
+        // Username sudah dipakai
+        if (guestNameInput) {
+          guestNameInput.style.borderColor = 'var(--red)';
+          guestNameInput.focus();
+        }
+        // Show error
+        let errEl = $('guest-name-error');
+        if (!errEl) {
+          errEl = document.createElement('p');
+          errEl.id = 'guest-name-error';
+          errEl.className = 'guest-note';
+          errEl.style.color = 'var(--red)';
+          guestNameInput.parentNode.insertAdjacentElement('afterend', errEl);
+        }
+        errEl.textContent = '❌ Username ini sedang dipakai, coba nama lain!';
+        errEl.style.display = 'block';
+        setTimeout(() => { if (errEl) errEl.style.display = 'none'; }, 4000);
+        return;
+      }
+
+      // Reserve username
+      const uid = 'guest_' + Math.random().toString(36).slice(2, 10);
+      await set(ref(db, `activeUsernames/${nameKey}`), { uid, name, since: Date.now() });
+      // Remove reservation on disconnect
+      onDisconnect(ref(db, `activeUsernames/${nameKey}`)).remove();
+
+      handleLoginSuccess(uid, name, '🐣', true);
+    } catch(e) {
+      // Firebase error — lanjut saja tanpa cek
+      const uid = 'guest_' + Math.random().toString(36).slice(2, 10);
+      handleLoginSuccess(uid, name, '🐣', true);
+    } finally {
+      guestLoginBtn.disabled = false;
+      guestLoginBtn.textContent = 'Masuk sebagai Tamu 🚪';
+    }
   });
 }
 
@@ -833,6 +875,11 @@ if (logoutBtn) {
     if (!confirm('Yakin mau keluar? 👋')) return;
     // Leave room first
     if (roomName) leaveRoom();
+    // Release username reservation for guests
+    if (isGuest && username) {
+      const nameKey = username.toLowerCase().replace(/\s+/g, '_');
+      try { await remove(ref(db, `activeUsernames/${nameKey}`)); } catch(e) {}
+    }
     if (!isGuest) {
       try { await auth.signOut(); } catch(e) {}
     }
@@ -1375,3 +1422,14 @@ function nameToColor(name) {
 
 // ── INIT ──
 updateTimerDisplay();
+
+// ── ONE-TIME CLEANUP: hapus room "makan" ──
+(async () => {
+  try {
+    const snap = await get(ref(db, 'rooms/makan'));
+    if (snap.exists()) {
+      await remove(ref(db, 'rooms/makan'));
+      console.log('Room "makan" berhasil dihapus.');
+    }
+  } catch(e) {}
+})();
