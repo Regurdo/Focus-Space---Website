@@ -264,6 +264,220 @@ audioSliders.forEach(({ slider, audio, pct }) => {
   sync();
 });
 
+// ═══════════════════════════════════════════════
+//  YOUTUBE PLAYER
+// ═══════════════════════════════════════════════
+let ytPlayer = null;
+let ytReady = false;
+let currentYtVid = null;
+let activePresetBtn = null;
+
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('yt-player', {
+    height: '0', width: '0',
+    playerVars: { autoplay: 0, controls: 0 },
+    events: {
+      onReady: () => { ytReady = true; },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.ENDED) stopYouTube();
+      }
+    }
+  });
+};
+
+function extractYtId(url) {
+  const patterns = [
+    /youtu\.be\/([^?&]+)/,
+    /[?&]v=([^?&]+)/,
+    /youtube\.com\/embed\/([^?&]+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  if (/^[A-Za-z0-9_-]{11}$/.test(url.trim())) return url.trim();
+  return null;
+}
+
+function playYouTube(videoId, label) {
+  if (!ytReady || !ytPlayer) {
+    showChatToast('FocusSpace', '⏳ YouTube player belum siap, coba lagi sebentar!');
+    return;
+  }
+  currentYtVid = videoId;
+  ytPlayer.loadVideoById(videoId);
+  const vol = parseInt($('yt-vol')?.value || '70');
+  ytPlayer.setVolume(vol);
+  ytPlayer.playVideo();
+  const nowPlaying = $('yt-now-playing');
+  const npLabel = $('yt-np-label');
+  if (nowPlaying) nowPlaying.classList.remove('hidden');
+  if (npLabel) npLabel.textContent = label || 'Custom Track';
+}
+
+function stopYouTube() {
+  if (ytPlayer && ytReady) ytPlayer.stopVideo();
+  currentYtVid = null;
+  const nowPlaying = $('yt-now-playing');
+  if (nowPlaying) nowPlaying.classList.add('hidden');
+  if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+}
+
+// YouTube volume
+const ytVol = $('yt-vol');
+const ytVolPct = $('yt-vol-pct');
+if (ytVol) {
+  ytVol.addEventListener('input', () => {
+    const v = parseInt(ytVol.value);
+    if (ytPlayer && ytReady) ytPlayer.setVolume(v);
+    if (ytVolPct) ytVolPct.textContent = `${v}%`;
+  });
+}
+
+// Stop button
+const ytStopBtn = $('yt-stop-btn');
+if (ytStopBtn) ytStopBtn.addEventListener('click', stopYouTube);
+
+// YouTube preset buttons
+document.querySelectorAll('.yt-preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const vid = btn.dataset.vid;
+    const label = btn.dataset.label;
+    if (activePresetBtn === btn) { stopYouTube(); return; }
+    if (activePresetBtn) activePresetBtn.classList.remove('playing');
+    activePresetBtn = btn;
+    btn.classList.add('playing');
+    playYouTube(vid, label);
+  });
+});
+
+// ═══════════════════════════════════════════════
+//  USER YOUTUBE PRESETS — persisted per user
+// ═══════════════════════════════════════════════
+const YT_PRESET_LOCAL_KEY = 'fs-yt-presets'; // fallback for guests
+let userYtPresets = []; // [{id, label, vid}]
+let activeUserPresetId = null;
+
+// Load presets from Firebase (Google users) or localStorage (guests)
+async function loadYtPresets() {
+  if (!isGuest && userUid) {
+    try {
+      const snap = await get(ref(db, `userPresets/${userUid}/ytPresets`));
+      userYtPresets = snap.exists() ? (snap.val() || []) : [];
+    } catch (e) {
+      userYtPresets = [];
+    }
+  } else {
+    try {
+      userYtPresets = JSON.parse(localStorage.getItem(YT_PRESET_LOCAL_KEY + '_' + userUid) || '[]');
+    } catch (e) { userYtPresets = []; }
+  }
+  renderUserYtPresets();
+}
+
+async function saveYtPresets() {
+  if (!isGuest && userUid) {
+    try {
+      await set(ref(db, `userPresets/${userUid}/ytPresets`), userYtPresets);
+    } catch(e) {}
+  } else {
+    localStorage.setItem(YT_PRESET_LOCAL_KEY + '_' + userUid, JSON.stringify(userYtPresets));
+  }
+}
+
+function renderUserYtPresets() {
+  const list  = $('user-yt-preset-list');
+  const empty = $('user-yt-empty');
+  if (!list) return;
+  // Clear existing items (keep empty hint)
+  Array.from(list.children).forEach(c => { if (c !== empty) c.remove(); });
+  if (userYtPresets.length === 0) {
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  userYtPresets.forEach(preset => {
+    const item = document.createElement('div');
+    item.className = 'user-yt-preset-item' + (activeUserPresetId === preset.id ? ' playing-now' : '');
+    item.dataset.id = preset.id;
+
+    const playBtn = document.createElement('button');
+    playBtn.className = 'user-yt-preset-play';
+    playBtn.title = activeUserPresetId === preset.id ? 'Hentikan' : 'Putar';
+    playBtn.textContent = activeUserPresetId === preset.id ? '⏹' : '▶';
+    playBtn.addEventListener('click', () => {
+      if (activeUserPresetId === preset.id) {
+        stopYouTube();
+        activeUserPresetId = null;
+        renderUserYtPresets();
+      } else {
+        if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+        activeUserPresetId = preset.id;
+        playYouTube(preset.vid, preset.label);
+        renderUserYtPresets();
+      }
+    });
+
+    const label = document.createElement('span');
+    label.className = 'user-yt-preset-label';
+    label.textContent = preset.label;
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'user-yt-preset-del';
+    delBtn.title = 'Hapus preset';
+    delBtn.textContent = '🗑';
+    delBtn.addEventListener('click', () => {
+      if (activeUserPresetId === preset.id) { stopYouTube(); activeUserPresetId = null; }
+      userYtPresets = userYtPresets.filter(p => p.id !== preset.id);
+      saveYtPresets();
+      renderUserYtPresets();
+    });
+
+    item.appendChild(playBtn);
+    item.appendChild(label);
+    item.appendChild(delBtn);
+    list.appendChild(item);
+  });
+}
+
+// YouTube Custom URL Modal
+const openYtCustom  = $('open-yt-custom');
+const ytCustomModal = $('yt-custom-modal');
+const ytCustomConfirm = $('yt-custom-confirm');
+const ytCustomCancel  = $('yt-custom-cancel');
+
+if (openYtCustom) openYtCustom.addEventListener('click', () => {
+  if (ytCustomModal) ytCustomModal.classList.remove('hidden');
+  loadYtPresets();
+});
+if (ytCustomCancel) ytCustomCancel.addEventListener('click', () => ytCustomModal && ytCustomModal.classList.add('hidden'));
+if (ytCustomConfirm) {
+  ytCustomConfirm.addEventListener('click', async () => {
+    const urlInput   = $('yt-custom-url');
+    const labelInput = $('yt-custom-label');
+    const url   = urlInput   ? urlInput.value.trim() : '';
+    const label = labelInput ? labelInput.value.trim() || 'Custom Track' : 'Custom Track';
+    if (!url) { if (urlInput) urlInput.focus(); return; }
+    const vid = extractYtId(url);
+    if (!vid) { showChatToast('FocusSpace', '❌ URL YouTube tidak valid!'); return; }
+
+    // Save as new preset
+    const newPreset = { id: Date.now().toString(36), label, vid };
+    userYtPresets.push(newPreset);
+    await saveYtPresets();
+
+    // Play it
+    if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+    activeUserPresetId = newPreset.id;
+    playYouTube(vid, label);
+    renderUserYtPresets();
+
+    if (urlInput) urlInput.value = '';
+    if (labelInput) labelInput.value = '';
+    showChatToast('FocusSpace', `✅ Preset "${label}" disimpan & diputar!`);
+  });
+}
+
 // ── TODO LIST ──
 const todoList  = $('todo-list');
 const todoInput = $('todo-input');
@@ -517,16 +731,7 @@ function initQuote() {
   if (btn) btn.addEventListener('click', showNextQuote);
 }
 
-// ── FIREBASE ──
-import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getDatabase, ref, onValue, onDisconnect, set, push, onChildAdded, remove, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-
+// ── FIREBASE v8 (global SDK) ──
 const firebaseConfig = {
   apiKey: "AIzaSyDTo8H7OV0XZtcAdJrk2fnXXsLiMDXlTmw",
   authDomain: "focus-space-f158e.firebaseapp.com",
@@ -537,10 +742,20 @@ const firebaseConfig = {
   appId: "1:947141512235:web:fbca8bcb5c3b98906e2e6e"
 };
 
-const app            = initializeApp(firebaseConfig);
-const auth           = getAuth(app);
-const db             = getDatabase(app);
-const googleProvider = new GoogleAuthProvider();
+const fbApp = firebase.initializeApp(firebaseConfig);
+const auth  = firebase.auth(fbApp);
+const db    = firebase.database(fbApp);
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+// Helper aliases — wraps Firebase v8 API to match original code style
+function ref(dbInst, path)   { return dbInst.ref(path); }
+function onValue(r, cb)      { const h = s => cb(s); r.on('value', h); return () => r.off('value', h); }
+function onChildAdded(r, cb) { const h = s => cb(s); r.on('child_added', h); return () => r.off('child_added', h); }
+function set(r, val)         { return r.set(val); }
+function push(r, val)        { return r.push(val); }
+function remove(r)           { return r.remove(); }
+function onDisconnect(r)     { return r.onDisconnect(); }
+async function get(r)        { return r.once('value'); }
 
 let username    = '';
 let userAvatar  = '👤';
@@ -572,15 +787,16 @@ function handleLoginSuccess(uid, displayName, avatar, guest = false) {
 
   mainContent.classList.remove('hidden');
   initQuote();
-  if (!guest) listenToActiveRooms();
-  else listenToActiveRooms(); // guests can also join rooms
+  listenToActiveRooms();
+  // Load user's personal YouTube presets (called after isGuest/userUid are set)
+  setTimeout(() => loadYtPresets(), 100);
 }
 
 // ── GOOGLE LOGIN ──
 const googleLoginBtn = $('google-login-btn');
 if (googleLoginBtn) {
   googleLoginBtn.addEventListener('click', () => {
-    signInWithPopup(auth, googleProvider).then(result => {
+    auth.signInWithPopup(googleProvider).then(result => {
       const u = result.user;
       handleLoginSuccess(u.uid, u.displayName || 'Pengguna', '🐱');
     }).catch(err => {
@@ -618,7 +834,7 @@ if (logoutBtn) {
     // Leave room first
     if (roomName) leaveRoom();
     if (!isGuest) {
-      try { await signOut(auth); } catch(e) {}
+      try { await auth.signOut(); } catch(e) {}
     }
     // Reset UI
     username = ''; userAvatar = '👤'; userUid = ''; isGuest = false;
@@ -781,6 +997,8 @@ const chatBox     = $('chat-box');
 const chatInput   = $('chat-input');
 const onlineCount = $('online-count');
 let unsubscribeRoomMeta = null;
+let roomOwnerUid = '';
+let roomOwnerName = '';
 
 function leaveRoom() {
   if (userRef) { remove(userRef); userRef = null; }
@@ -788,6 +1006,8 @@ function leaveRoom() {
   if (unsubscribeMsgs)     { unsubscribeMsgs();     unsubscribeMsgs     = null; }
   if (unsubscribeRoomMeta) { unsubscribeRoomMeta(); unsubscribeRoomMeta = null; }
   roomName = '';
+  roomOwnerUid = '';
+  roomOwnerName = '';
   if (roomInput) roomInput.value = '';
   if (chatBox) chatBox.innerHTML = '';
   if (chatSection) chatSection.style.display = 'none';
@@ -797,6 +1017,8 @@ function leaveRoom() {
   if (roomStatus) roomStatus.textContent = 'Belum bergabung ke ruangan';
   if (onlineCount) onlineCount.textContent = 'Pilih ruangan dulu';
   if (deleteRoomBtn) deleteRoomBtn.classList.add('hidden');
+  const ownerInfo = $('room-owner-info');
+  if (ownerInfo) ownerInfo.classList.add('hidden');
   prevMemberCount = 0;
 }
 
@@ -841,10 +1063,22 @@ function joinRoom(rn) {
   onDisconnect(userRef).remove();
 
   get(ref(db, `rooms/${roomName}/meta`)).then(snap => {
-    if (snap.exists() && snap.val().ownerUid === userUid) {
-      if (deleteRoomBtn) deleteRoomBtn.classList.remove('hidden');
-    } else {
-      if (deleteRoomBtn) deleteRoomBtn.classList.add('hidden');
+    if (snap.exists()) {
+      const meta = snap.val();
+      roomOwnerUid  = meta.ownerUid  || '';
+      roomOwnerName = meta.ownerName || '';
+      // Show owner info bar
+      const ownerInfo = $('room-owner-info');
+      const ownerNameEl = $('room-owner-name');
+      if (ownerInfo && ownerNameEl) {
+        ownerNameEl.textContent = roomOwnerName || 'Tidak diketahui';
+        ownerInfo.classList.remove('hidden');
+      }
+      if (meta.ownerUid === userUid) {
+        if (deleteRoomBtn) deleteRoomBtn.classList.remove('hidden');
+      } else {
+        if (deleteRoomBtn) deleteRoomBtn.classList.add('hidden');
+      }
     }
   });
 
@@ -943,6 +1177,83 @@ function listenToActiveRooms() {
 }
 
 // ── CHAT ──
+// Image Lightbox
+const imgLightbox      = $('img-lightbox');
+const imgLightboxImg   = $('img-lightbox-img');
+const imgLightboxClose = $('img-lightbox-close');
+const imgLightboxBg    = imgLightbox ? imgLightbox.querySelector('.img-lightbox-bg') : null;
+
+function openLightbox(src) {
+  if (!imgLightbox || !imgLightboxImg) return;
+  imgLightboxImg.src = src;
+  imgLightbox.classList.remove('hidden');
+}
+function closeLightbox() {
+  if (imgLightbox) imgLightbox.classList.add('hidden');
+}
+if (imgLightboxClose) imgLightboxClose.addEventListener('click', closeLightbox);
+if (imgLightboxBg)    imgLightboxBg.addEventListener('click', closeLightbox);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+
+// Pending image to send
+let pendingImageData = null;
+
+// Image preview UI
+const imgPreviewBar    = $('img-preview-bar');
+const imgPreviewThumb  = $('img-preview-thumb');
+const imgPreviewName   = $('img-preview-name');
+const imgPreviewCancel = $('img-preview-cancel');
+
+function showImagePreview(dataUrl, name) {
+  pendingImageData = dataUrl;
+  if (imgPreviewThumb) imgPreviewThumb.src = dataUrl;
+  if (imgPreviewName)  imgPreviewName.textContent = name || 'gambar';
+  if (imgPreviewBar)   imgPreviewBar.classList.remove('hidden');
+}
+function clearImagePreview() {
+  pendingImageData = null;
+  if (imgPreviewBar)  imgPreviewBar.classList.add('hidden');
+  if (imgPreviewThumb) imgPreviewThumb.src = '';
+  if (imgPreviewName) imgPreviewName.textContent = '';
+  const inp = $('img-upload-input');
+  if (inp) inp.value = '';
+}
+if (imgPreviewCancel) imgPreviewCancel.addEventListener('click', clearImagePreview);
+
+// File input handler
+const imgUploadBtn   = $('img-upload-btn');
+const imgUploadInput = $('img-upload-input');
+if (imgUploadBtn) imgUploadBtn.addEventListener('click', () => imgUploadInput && imgUploadInput.click());
+if (imgUploadInput) {
+  imgUploadInput.addEventListener('change', () => {
+    const file = imgUploadInput.files[0];
+    if (!file) return;
+    if (!roomName) { showChatToast('FocusSpace', '⚠️ Masuk ke ruangan dulu!'); return; }
+    if (file.size > 3 * 1024 * 1024) { showChatToast('FocusSpace', '❌ Gambar terlalu besar (maks 3MB)!'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => showImagePreview(e.target.result, file.name);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Paste image from clipboard
+document.addEventListener('paste', (e) => {
+  if (!roomName) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => showImagePreview(ev.target.result, 'clipboard');
+        reader.readAsDataURL(file);
+      }
+      break;
+    }
+  }
+});
+
 function appendMessage(msg) {
   const el = document.createElement('div');
   el.className = 'chat-msg' + (msg.sender === username ? ' own' : '');
@@ -951,12 +1262,35 @@ function appendMessage(msg) {
   const timeEl = document.createElement('span');
   timeEl.className = 't'; timeEl.textContent = msg.time;
   el.appendChild(senderEl);
-  el.append(' ' + esc(msg.text) + ' ');
+
+  // Owner badge: check by senderUid (preferred) or sender name
+  const isOwner = roomOwnerUid
+    ? (msg.senderUid && msg.senderUid === roomOwnerUid)
+    : (roomOwnerName && msg.sender === roomOwnerName);
+  if (isOwner) {
+    const badge = document.createElement('span');
+    badge.className = 'chat-owner-badge';
+    badge.title = 'Pemilik Ruangan';
+    badge.textContent = '👑 Owner';
+    el.appendChild(badge);
+  }
+
+  if (msg.type === 'image' && msg.imageData) {
+    const img = document.createElement('img');
+    img.className = 'chat-img';
+    img.src = msg.imageData;
+    img.alt = 'Gambar';
+    img.addEventListener('click', () => openLightbox(msg.imageData));
+    el.appendChild(img);
+  } else {
+    el.append(' ' + esc(msg.text || '') + ' ');
+  }
+
   el.appendChild(timeEl);
   if (chatBox) { chatBox.appendChild(el); chatBox.scrollTop = chatBox.scrollHeight; }
   if (chatNotifEnabled && msg.sender !== username) {
     playNotifSound('chat');
-    showChatToast(msg.sender, msg.text);
+    showChatToast(msg.sender, msg.type === 'image' ? '🖼️ Mengirim gambar' : msg.text);
   }
 }
 
@@ -964,12 +1298,24 @@ function sendMsg(text) {
   if (!text || !roomName) return;
   const now  = new Date();
   const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  push(ref(db, `rooms/${roomName}/messages`), { sender: username, text, time });
+  push(ref(db, `rooms/${roomName}/messages`), { sender: username, senderUid: userUid, text, time, type: 'text' });
+}
+
+function sendImageMsg(base64Data) {
+  if (!base64Data || !roomName) return;
+  const now  = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  push(ref(db, `rooms/${roomName}/messages`), { sender: username, senderUid: userUid, text: '🖼️ Gambar', imageData: base64Data, time, type: 'image' });
 }
 
 const sendBtn = $('send-btn');
 if (sendBtn) {
   sendBtn.addEventListener('click', () => {
+    if (pendingImageData) {
+      sendImageMsg(pendingImageData);
+      clearImagePreview();
+      return;
+    }
     const t = chatInput ? chatInput.value.trim() : '';
     if (t) { sendMsg(t); chatInput.value = ''; }
   });
@@ -977,6 +1323,11 @@ if (sendBtn) {
 if (chatInput) {
   chatInput.addEventListener('keypress', e => {
     if (e.key === 'Enter') {
+      if (pendingImageData) {
+        sendImageMsg(pendingImageData);
+        clearImagePreview();
+        return;
+      }
       const t = chatInput.value.trim();
       if (t) { sendMsg(t); chatInput.value = ''; }
     }
