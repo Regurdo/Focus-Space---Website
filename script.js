@@ -1480,11 +1480,14 @@ updateTimerDisplay();
 
     // Sembunyikan chat area saat tab lain aktif agar header "Ruang" tidak nyangkut
     const rightMain = document.querySelector('.dashboard-right-main');
-    const isChatTab = (tabName === 'chat');
+    const isChatTab = (tabName === 'chat' || tabName === 'rooms');
     if (rightMain) rightMain.classList.toggle('tab-hidden', !isChatTab);
 
+    // FAB selalu disembunyikan di mobile agar tidak nimpa tombol send
+    const fab = document.getElementById('focus-fab');
+    if (fab) fab.style.display = 'none';
+
     if (tabName === 'rooms') {
-      if (rightMain) rightMain.classList.remove('tab-hidden'); // rooms pakai sidebar di atas chat
       if (sidebar) sidebar.classList.add('mobile-active');
       if (chatContainer) chatContainer.classList.add('sidebar-open');
     } else if (tabs[tabName]) {
