@@ -269,21 +269,42 @@ audioSliders.forEach(({ slider, audio, pct }) => {
 // ═══════════════════════════════════════════════
 let ytPlayer = null;
 let ytReady = false;
+let ytApiLoaded = false;
 let currentYtVid = null;
 let activePresetBtn = null;
+let pendingYtPlay = null;
 
 window.onYouTubeIframeAPIReady = function() {
+  ytApiLoaded = true;
+  if (document.getElementById('yt-player')) {
+    initYtPlayer();
+  }
+};
+
+function initYtPlayer() {
+  if (ytPlayer) return;
   ytPlayer = new YT.Player('yt-player', {
     height: '0', width: '0',
-    playerVars: { autoplay: 0, controls: 0 },
+    playerVars: { autoplay: 0, controls: 0, origin: location.origin },
     events: {
-      onReady: () => { ytReady = true; },
+      onReady: () => {
+        ytReady = true;
+        if (pendingYtPlay) {
+          const { videoId, label } = pendingYtPlay;
+          pendingYtPlay = null;
+          playYouTube(videoId, label);
+        }
+      },
       onStateChange: (e) => {
         if (e.data === YT.PlayerState.ENDED) stopYouTube();
+      },
+      onError: () => {
+        showChatToast('FocusSpace', '\u274c Video tidak bisa diputar (mungkin dibatasi)');
+        stopYouTube();
       }
     }
   });
-};
+}
 
 function extractYtId(url) {
   const patterns = [
@@ -301,12 +322,17 @@ function extractYtId(url) {
 
 function playYouTube(videoId, label) {
   if (!ytReady || !ytPlayer) {
-    showChatToast('FocusSpace', '⏳ YouTube player belum siap, coba lagi sebentar!');
+    pendingYtPlay = { videoId, label };
+    if (ytApiLoaded && !ytPlayer) initYtPlayer();
+    const nowPlaying = $('yt-now-playing');
+    const npLabel = $('yt-np-label');
+    if (nowPlaying) nowPlaying.classList.remove('hidden');
+    if (npLabel) npLabel.textContent = '\u23f3 ' + (label || 'Custom Track');
     return;
   }
   currentYtVid = videoId;
   ytPlayer.loadVideoById(videoId);
-  const vol = parseInt($('yt-vol')?.value || '70');
+  const vol = parseInt($('yt-vol') ? $('yt-vol').value : '70');
   ytPlayer.setVolume(vol);
   ytPlayer.playVideo();
   const nowPlaying = $('yt-now-playing');
@@ -316,11 +342,13 @@ function playYouTube(videoId, label) {
 }
 
 function stopYouTube() {
+  pendingYtPlay = null;
   if (ytPlayer && ytReady) ytPlayer.stopVideo();
   currentYtVid = null;
   const nowPlaying = $('yt-now-playing');
   if (nowPlaying) nowPlaying.classList.add('hidden');
   if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
+  activeUserPresetId = null;
 }
 
 // YouTube volume
@@ -788,8 +816,11 @@ function handleLoginSuccess(uid, displayName, avatar, guest = false) {
   mainContent.classList.remove('hidden');
   initQuote();
   listenToActiveRooms();
-  // Load user's personal YouTube presets (called after isGuest/userUid are set)
-  setTimeout(() => loadYtPresets(), 100);
+  // Init YouTube player sekarang elemen sudah visible
+  setTimeout(() => {
+    if (ytApiLoaded && !ytPlayer) initYtPlayer();
+    loadYtPresets();
+  }, 300);
 }
 
 // ── GOOGLE LOGIN ──
@@ -1422,14 +1453,3 @@ function nameToColor(name) {
 
 // ── INIT ──
 updateTimerDisplay();
-
-// ── ONE-TIME CLEANUP: hapus room "makan" ──
-(async () => {
-  try {
-    const snap = await get(ref(db, 'rooms/makan'));
-    if (snap.exists()) {
-      await remove(ref(db, 'rooms/makan'));
-      console.log('Room "makan" berhasil dihapus.');
-    }
-  } catch(e) {}
-})();
