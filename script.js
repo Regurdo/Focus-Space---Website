@@ -299,7 +299,7 @@ function initYtPlayer() {
         if (e.data === YT.PlayerState.ENDED) stopYouTube();
       },
       onError: () => {
-        showChatToast('FocusSpace', '\u274c Video tidak bisa diputar (mungkin dibatasi)');
+        showChatToast('FocusSpace', '❌ Video tidak bisa diputar (mungkin dibatasi)');
         stopYouTube();
       }
     }
@@ -327,7 +327,7 @@ function playYouTube(videoId, label) {
     const nowPlaying = $('yt-now-playing');
     const npLabel = $('yt-np-label');
     if (nowPlaying) nowPlaying.classList.remove('hidden');
-    if (npLabel) npLabel.textContent = '\u23f3 ' + (label || 'Custom Track');
+    if (npLabel) npLabel.textContent = '⏳ ' + (label || 'Custom Track');
     return;
   }
   currentYtVid = videoId;
@@ -379,14 +379,11 @@ document.querySelectorAll('.yt-preset-btn').forEach(btn => {
   });
 });
 
-// ═══════════════════════════════════════════════
-//  USER YOUTUBE PRESETS — persisted per user
-// ═══════════════════════════════════════════════
-const YT_PRESET_LOCAL_KEY = 'fs-yt-presets'; // fallback for guests
-let userYtPresets = []; // [{id, label, vid}]
+// ── USER YOUTUBE PRESETS ──
+const YT_PRESET_LOCAL_KEY = 'fs-yt-presets';
+let userYtPresets = [];
 let activeUserPresetId = null;
 
-// Load presets from Firebase (Google users) or localStorage (guests)
 async function loadYtPresets() {
   if (!isGuest && userUid) {
     try {
@@ -417,7 +414,6 @@ function renderUserYtPresets() {
   const list  = $('user-yt-preset-list');
   const empty = $('user-yt-empty');
   if (!list) return;
-  // Clear existing items (keep empty hint)
   Array.from(list.children).forEach(c => { if (c !== empty) c.remove(); });
   if (userYtPresets.length === 0) {
     if (empty) empty.style.display = 'block';
@@ -489,12 +485,10 @@ if (ytCustomConfirm) {
     const vid = extractYtId(url);
     if (!vid) { showChatToast('FocusSpace', '❌ URL YouTube tidak valid!'); return; }
 
-    // Save as new preset
     const newPreset = { id: Date.now().toString(36), label, vid };
     userYtPresets.push(newPreset);
     await saveYtPresets();
 
-    // Play it
     if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
     activeUserPresetId = newPreset.id;
     playYouTube(vid, label);
@@ -642,7 +636,6 @@ function applyTheme(theme) {
   });
 }
 
-// Init theme
 applyTheme(currentTheme);
 
 const openThemeBtn = $('open-theme-btn');
@@ -794,13 +787,12 @@ let unsubscribeUsers = null;
 let unsubscribeMsgs  = null;
 let prevMemberCount  = 0;
 let isGuest = false;
-let currentRoomMembers = []; // for @mention autocomplete
+let currentRoomMembers = [];
 
 // ── LOGIN ELEMENTS ──
 const loginOverlay = $('login-overlay');
 const mainContent  = $('main-content');
 
-// ── handleLoginSuccess ──
 function handleLoginSuccess(uid, displayName, avatar, guest = false) {
   userUid    = uid;
   username   = displayName;
@@ -817,7 +809,6 @@ function handleLoginSuccess(uid, displayName, avatar, guest = false) {
   mainContent.classList.remove('hidden');
   initQuote();
   listenToActiveRooms();
-  // Init YouTube player sekarang elemen sudah visible
   setTimeout(() => {
     if (ytApiLoaded && !ytPlayer) initYtPlayer();
     loadYtPresets();
@@ -846,21 +837,17 @@ if (guestLoginBtn) {
     const name = guestNameInput ? guestNameInput.value.trim() : '';
     if (!name) { guestNameInput && (guestNameInput.style.borderColor = 'var(--red)'); return; }
 
-    // Disable button while checking
     guestLoginBtn.disabled = true;
     guestLoginBtn.textContent = '⏳ Memeriksa...';
 
     try {
-      // Cek apakah username sudah dipakai (case-insensitive)
       const nameKey = name.toLowerCase().replace(/\s+/g, '_');
       const snap = await get(ref(db, `activeUsernames/${nameKey}`));
       if (snap.exists()) {
-        // Username sudah dipakai
         if (guestNameInput) {
           guestNameInput.style.borderColor = 'var(--red)';
           guestNameInput.focus();
         }
-        // Show error
         let errEl = $('guest-name-error');
         if (!errEl) {
           errEl = document.createElement('p');
@@ -875,15 +862,12 @@ if (guestLoginBtn) {
         return;
       }
 
-      // Reserve username
       const uid = 'guest_' + Math.random().toString(36).slice(2, 10);
       await set(ref(db, `activeUsernames/${nameKey}`), { uid, name, since: Date.now() });
-      // Remove reservation on disconnect
       onDisconnect(ref(db, `activeUsernames/${nameKey}`)).remove();
 
       handleLoginSuccess(uid, name, '🐣', true);
     } catch(e) {
-      // Firebase error — lanjut saja tanpa cek
       const uid = 'guest_' + Math.random().toString(36).slice(2, 10);
       handleLoginSuccess(uid, name, '🐣', true);
     } finally {
@@ -905,9 +889,7 @@ const logoutBtn = $('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', async () => {
     if (!confirm('Yakin mau keluar? 👋')) return;
-    // Leave room first
     if (roomName) leaveRoom();
-    // Release username reservation for guests
     if (isGuest && username) {
       const nameKey = username.toLowerCase().replace(/\s+/g, '_');
       try { await remove(ref(db, `activeUsernames/${nameKey}`)); } catch(e) {}
@@ -915,7 +897,6 @@ if (logoutBtn) {
     if (!isGuest) {
       try { await auth.signOut(); } catch(e) {}
     }
-    // Reset UI
     username = ''; userAvatar = '👤'; userUid = ''; isGuest = false;
     mainContent.classList.add('hidden');
     loginOverlay.style.display = '';
@@ -1146,7 +1127,6 @@ function joinRoom(rn) {
       const meta = snap.val();
       roomOwnerUid  = meta.ownerUid  || '';
       roomOwnerName = meta.ownerName || '';
-      // Show owner info bar
       const ownerInfo = $('room-owner-info');
       const ownerNameEl = $('room-owner-name');
       if (ownerInfo && ownerNameEl) {
@@ -1175,7 +1155,6 @@ function joinRoom(rn) {
     const data    = snap.val() || {};
     const members = Object.values(data);
     const count   = members.length;
-    // Update global member list for @mention autocomplete
     currentRoomMembers = members.map(m => m.name);
     if (onlineCount) onlineCount.textContent = `${count} di #${roomName}`;
     if (prevMemberCount > 0 && count > prevMemberCount) playNotifSound('join');
@@ -1257,8 +1236,7 @@ function listenToActiveRooms() {
   });
 }
 
-// ── CHAT ──
-// Image Lightbox
+// ── CHAT IMAGE HANDLERS ──
 const imgLightbox      = $('img-lightbox');
 const imgLightboxImg   = $('img-lightbox-img');
 const imgLightboxClose = $('img-lightbox-close');
@@ -1276,10 +1254,8 @@ if (imgLightboxClose) imgLightboxClose.addEventListener('click', closeLightbox);
 if (imgLightboxBg)    imgLightboxBg.addEventListener('click', closeLightbox);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
 
-// Pending image to send
 let pendingImageData = null;
 
-// Image preview UI
 const imgPreviewBar    = $('img-preview-bar');
 const imgPreviewThumb  = $('img-preview-thumb');
 const imgPreviewName   = $('img-preview-name');
@@ -1301,7 +1277,6 @@ function clearImagePreview() {
 }
 if (imgPreviewCancel) imgPreviewCancel.addEventListener('click', clearImagePreview);
 
-// File input handler
 const imgUploadBtn   = $('img-upload-btn');
 const imgUploadInput = $('img-upload-input');
 if (imgUploadBtn) imgUploadBtn.addEventListener('click', () => imgUploadInput && imgUploadInput.click());
@@ -1317,7 +1292,6 @@ if (imgUploadInput) {
   });
 }
 
-// Paste image from clipboard
 document.addEventListener('paste', (e) => {
   if (!roomName) return;
   const items = e.clipboardData && e.clipboardData.items;
@@ -1336,7 +1310,7 @@ document.addEventListener('paste', (e) => {
 });
 
 // ── REPLY STATE ──
-let replyTo = null; // { sender, text, msgId }
+let replyTo = null;
 
 const replyBar       = $('reply-bar');
 const replyBarName   = $('reply-bar-name');
@@ -1358,8 +1332,8 @@ function clearReply() {
 
 if (replyBarCancel) replyBarCancel.addEventListener('click', clearReply);
 
-// ── KAZU AI ──
-const GEMINI_API_KEY = 'AIzaSyD9P2llaADun4ie2JaILC5hucluTLCzMFY'; // Ganti dengan API key Gemini kamu
+// ── KAZU AI (GEMINI) ──
+const GEMINI_API_KEY = 'AIzaSyD9P2llaADun4ie2JaILC5hucluTLCzMFY'; 
 const KAZU_NAME = 'Kazu';
 const KAZU_AVATAR = '☕';
 const KAZU_UID = '__kazu_ai__';
@@ -1424,7 +1398,6 @@ function appendMessage(msg) {
   el.dataset.sender = msg.sender || '';
   el.dataset.text = msg.text || '';
 
-  // Header row: avatar + name + badges
   const headerRow = document.createElement('div');
   headerRow.className = 'chat-msg-header';
 
@@ -1459,7 +1432,6 @@ function appendMessage(msg) {
 
   el.appendChild(headerRow);
 
-  // Reply quote
   if (msg.replyTo) {
     const quote = document.createElement('div');
     quote.className = 'chat-reply-quote';
@@ -1467,7 +1439,6 @@ function appendMessage(msg) {
     el.appendChild(quote);
   }
 
-  // Message body
   if (msg.type === 'image' && msg.imageData) {
     const img = document.createElement('img');
     img.className = 'chat-img';
@@ -1482,14 +1453,12 @@ function appendMessage(msg) {
     el.appendChild(body);
   }
 
-  // Footer: time + reply button
   const footer = document.createElement('div');
   footer.className = 'chat-msg-footer';
   const timeEl = document.createElement('span');
   timeEl.className = 't'; timeEl.textContent = msg.time;
   footer.appendChild(timeEl);
 
-  // Reply button (only for non-kazu or user can still reply to kazu)
   const replyBtn = document.createElement('button');
   replyBtn.className = 'chat-reply-btn';
   replyBtn.title = 'Balas';
@@ -1526,7 +1495,6 @@ function sendMsg(text) {
   }
   push(ref(db, `rooms/${roomName}/messages`), msgData);
 
-  // Check if @kazu is mentioned
   if (/@kazu/i.test(text)) {
     askKazu(text, username);
   }
@@ -1567,7 +1535,6 @@ if (chatInput) {
 
 // ── @MENTION AUTOCOMPLETE ──
 (function() {
-  // Create dropdown element
   const dropdown = document.createElement('div');
   dropdown.id = 'mention-dropdown';
   dropdown.className = 'mention-dropdown hidden';
@@ -1580,7 +1547,6 @@ if (chatInput) {
     if (!chatInput) return null;
     const val = chatInput.value;
     const cursor = chatInput.selectionStart;
-    // Walk backwards from cursor to find @
     let i = cursor - 1;
     while (i >= 0 && val[i] !== ' ' && val[i] !== '\n') {
       if (val[i] === '@') { mentionStart = i; return val.slice(i + 1, cursor); }
@@ -1592,7 +1558,6 @@ if (chatInput) {
 
   function getSuggestions(query) {
     const q = (query || '').toLowerCase();
-    // Always include Kazu first, then room members (exclude self)
     const all = [
       { name: 'kazu', label: 'kazu', isKazu: true },
       ...currentRoomMembers
@@ -1742,20 +1707,16 @@ updateTimerDisplay();
   function activateTab(tabName) {
     if (!isMobile()) return;
 
-    // Hide all panels
     Object.values(tabs).forEach(el => { if (el) el.classList.remove('mobile-active'); });
     if (sidebar) sidebar.classList.remove('mobile-active');
     if (chatContainer) chatContainer.classList.remove('sidebar-open');
 
-    // Update nav buttons
     mbnBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
 
-    // Sembunyikan chat area saat tab lain aktif agar header "Ruang" tidak nyangkut
     const rightMain = document.querySelector('.dashboard-right-main');
     const isChatTab = (tabName === 'chat' || tabName === 'rooms');
     if (rightMain) rightMain.classList.toggle('tab-hidden', !isChatTab);
 
-    // FAB selalu disembunyikan di mobile agar tidak nimpa tombol send
     const fab = document.getElementById('focus-fab');
     if (fab) fab.style.display = 'none';
 
@@ -1765,7 +1726,6 @@ updateTimerDisplay();
     } else if (tabs[tabName]) {
       tabs[tabName].classList.add('mobile-active');
     }
-    // 'chat' = default, no extra class needed
   }
 
   mbnBtns.forEach(btn => {
