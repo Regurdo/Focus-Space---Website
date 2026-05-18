@@ -1368,21 +1368,18 @@ const kazuTyping = $('kazu-typing');
 
 async function askKazu(userText, senderName) {
   if (kazuTyping) kazuTyping.classList.remove('hidden');
-  const systemPrompt = `Kamu adalah Kazu ☕, asisten AI yang ramah dan cozy di FocusSpace — sebuah virtual study café. Kamu membantu pengguna dengan pertanyaan apapun: belajar, motivasi, atau obrolan santai. Gaya bahasa kamu casual, hangat, dan menyenangkan seperti teman belajar. Gunakan bahasa Indonesia. Jawab singkat dan padat (maks 3 kalimat kecuali diminta panjang). Sertakan emoji yang sesuai.`;
 
-  // Bersihkan @kazu dari teks
   const cleanText = userText.replace(/@kazu/gi, '').trim();
-  const prompt = `${senderName} berkata: "${cleanText}"`;
+  const fullPrompt = `Kamu adalah Kazu ☕, asisten AI yang ramah dan cozy di FocusSpace — sebuah virtual study café. Kamu membantu pengguna dengan pertanyaan apapun: belajar, motivasi, atau obrolan santai. Gaya bahasa kamu casual, hangat, dan menyenangkan seperti teman belajar. Gunakan bahasa Indonesia. Jawab singkat dan padat (maks 3 kalimat kecuali diminta panjang). Sertakan emoji yang sesuai.\n\n${senderName} berkata: "${cleanText}"`;
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: 'user', parts: [{ text: prompt }] }]
+          contents: [{ parts: [{ text: fullPrompt }] }]
         })
       }
     );
@@ -1393,20 +1390,14 @@ async function askKazu(userText, senderName) {
       const now = new Date();
       const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       push(ref(db, `rooms/${roomName}/messages`), {
-        sender: KAZU_NAME,
-        senderUid: KAZU_UID,
-        text: reply,
-        time,
-        type: 'text',
-        isKazu: true
+        sender: KAZU_NAME, senderUid: KAZU_UID, text: reply, time, type: 'text', isKazu: true
       });
     } else {
       const errMsg = data?.error?.message || 'Hmm, aku bingung nih 😅 Coba tanya lagi ya!';
       const now = new Date();
       const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       push(ref(db, `rooms/${roomName}/messages`), {
-        sender: KAZU_NAME, senderUid: KAZU_UID,
-        text: `⚠️ ${errMsg}`, time, type: 'text', isKazu: true
+        sender: KAZU_NAME, senderUid: KAZU_UID, text: `⚠️ ${errMsg}`, time, type: 'text', isKazu: true
       });
     }
   } catch (e) {
