@@ -243,128 +243,27 @@ if ('Notification' in window && Notification.permission === 'default') {
 }
 
 // ── LO-FI AUDIO MIXER ──
-// =========================================================================
-// ── INTEGRASI YOUTUBE PLAYER & LO-FI AUDIO MIXER ──
-// =========================================================================
-
-// 1. Suntik secara otomatis skrip YouTube Iframe API ke halaman web
-var ytTag = document.createElement('script');
-ytTag.src = "https://www.youtube.com/iframe_api";
-var firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(ytTag, firstScriptTag);
-
-let ytPlayer = null;
-let isYoutubeMode = false;
-
-// Fungsi pembantu untuk mengambil ID Video dari berbagai format URL YouTube
-function extractYouTubeID(url) {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-}
-
-// Fungsi global yang otomatis dipanggil saat YouTube API selesai dimuat
-window.onYouTubeIframeAPIReady = function() {
-  // Kita siapkan objek player kosong terlebih dahulu pada container HTML
-  ytPlayer = new YT.Player('lofi1-youtube-container', {
-    height: '0',
-    width: '0',
-    playerVars: {
-      'autoplay': 0,
-      'loop': 1,
-      'controls': 0
-    },
-    events: {
-      'onReady': onYoutubePlayerReady,
-      'onStateChange': onYoutubeStateChange
-    }
-  });
-};
-
-function onYoutubePlayerReady(event) {
-  console.log("YouTube Player API siap digunakan di FocusSpace!");
-}
-
-// Berfungsi menjaga agar musik YouTube otomatis mengulang (looping) sempurna
-function onYoutubeStateChange(event) {
-  if (event.data === YT.PlayerState.ENDED && isYoutubeMode) {
-    ytPlayer.playVideo();
-  }
-}
-
-// Tambahkan Event Listener untuk mendeteksi input URL YouTube dari user
-const ytUrlInput = $('lofi1-yt-url');
-if (ytUrlInput) {
-  ytUrlInput.addEventListener('input', (e) => {
-    const url = e.target.value.trim();
-    const videoId = extractYouTubeID(url);
-
-    if (videoId && ytPlayer && typeof ytPlayer.cueVideoById === 'function') {
-      // Jika URL Valid, matikan audio lokal bawaan dan alihkan ke mode YouTube
-      isYoutubeMode = true;
-      const audioLokal = $('lofi1-audio');
-      if (audioLokal) {
-        audioLokal.pause();
-        audioLokal.src = ""; // hapus track lokal agar tidak bentrok
-      }
-      
-      // Muat video ke player tersembunyi
-      ytPlayer.cueVideoById({ videoId: videoId });
-      showChatToast('FocusSpace', 'Audio YouTube berhasil dimuat! Geser slider volume untuk memutar 🎵');
-      
-      // Trigger sinkronisasi ulang volume mixer
-      triggerMixerSync(0); // lofi1 berada pada indeks ke-0
-    } else if (url === "") {
-      // Jika input dikosongkan, kembalikan ke setelan audio default (opsional)
-      isYoutubeMode = false;
-      if (ytPlayer) ytPlayer.pauseVideo();
-      const audioLokal = $('lofi1-audio');
-      if (audioLokal) audioLokal.src = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3";
-      triggerMixerSync(0);
-    }
-  });
-}
-
-// Modifikasi sistem pengatur Slider Volume bawaan kamu agar mendukung percabangan YouTube
 const audioSliders = [
   { slider: $('lofi1-vol'), audio: $('lofi1-audio'), pct: $('lofi1-pct') },
   { slider: $('lofi2-vol'), audio: $('lofi2-audio'), pct: $('lofi2-pct') },
   { slider: $('lofi3-vol'), audio: $('lofi3-audio'), pct: $('lofi3-pct') },
   { slider: $('lofi4-vol'), audio: $('lofi4-audio'), pct: $('lofi4-pct') },
 ];
-
-function triggerMixerSync(index) {
-  const { slider, audio, pct } = audioSliders[index];
+audioSliders.forEach(({ slider, audio, pct }) => {
   if (!slider) return;
-  
-  const v = parseFloat(slider.value);
-  const p = Math.round(v * 100);
-  if (pct) pct.textContent = `${p}%`;
-  slider.style.setProperty('--fill', `${p}%`);
-
-  // Logika Khusus untuk Lofi Jalur 1 (Mendukung YouTube & Lokal)
-  if (index === 0 && isYoutubeMode && ytPlayer && typeof ytPlayer.setVolume === 'function') {
-    if (v > 0) {
-      ytPlayer.setVolume(v * 100); // API YouTube menggunakan skala volume 0-100
-      if (ytPlayer.getPlayerState() !== YT.PlayerState.PLAYING) {
-        ytPlayer.playVideo();
-      }
-    } else {
-      ytPlayer.pauseVideo();
-    }
-  } else {
-    // Logika untuk audio HTML5 lokal biasa (Lofi 2, 3, 4 atau Lofi 1 normal)
+  function sync() {
+    const v = parseFloat(slider.value);
     audio.volume = v;
+    const p = Math.round(v * 100);
+    if (pct) pct.textContent = `${p}%`;
+    slider.style.setProperty('--fill', `${p}%`);
     if (v > 0 && audio.paused) audio.play().catch(() => {});
     else if (v === 0) audio.pause();
   }
-}
-
-audioSliders.forEach(({ slider }, index) => {
-  if (!slider) return;
-  slider.addEventListener('input', () => triggerMixerSync(index));
-  triggerMixerSync(index); // Jalankan inisialisasi awal saat halaman dimuat
+  slider.addEventListener('input', sync);
+  sync();
 });
+
 // ── TODO LIST ──
 const todoList  = $('todo-list');
 const todoInput = $('todo-input');
