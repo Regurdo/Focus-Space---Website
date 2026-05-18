@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 </head>
 <body>
 
@@ -23,11 +24,27 @@
 
   <!-- ══════════════ LOGIN OVERLAY ══════════════ -->
   <div id="login-overlay" class="login-overlay">
+    <!-- Animated background particles -->
+    <div class="login-bg-particles">
+      <span class="lp lp1">☕</span>
+      <span class="lp lp2">✨</span>
+      <span class="lp lp3">📚</span>
+      <span class="lp lp4">🍃</span>
+      <span class="lp lp5">⭐</span>
+      <span class="lp lp6">🎵</span>
+      <span class="lp lp7">✦</span>
+      <span class="lp lp8">🌙</span>
+      <span class="lp lp9">💡</span>
+      <span class="lp lp10">🌸</span>
+    </div>
     <div class="login-scene">
+      <!-- Decorative blobs -->
       <div class="login-blob b1"></div>
       <div class="login-blob b2"></div>
       <div class="login-blob b3"></div>
+
       <div class="login-card">
+        <!-- Mascot -->
         <div class="login-art">
           <svg viewBox="0 0 120 90" width="130" xmlns="http://www.w3.org/2000/svg">
             <rect x="25" y="40" width="65" height="40" rx="12" fill="#f4a96a" stroke="#2d1a0e" stroke-width="3.5"/>
@@ -46,10 +63,15 @@
             <rect x="14" y="78" width="92" height="6" rx="3" fill="#c8894a" stroke="#2d1a0e" stroke-width="2.5"/>
           </svg>
         </div>
+
         <div class="login-badge">✨ Virtual Study Café</div>
         <h1 class="login-title">FocusSpace</h1>
         <p class="login-sub">Ruang belajar virtualmu yang cozy & menyenangkan</p>
+
+        <!-- LOGIN OPTIONS: TAMU (atas) & GOOGLE (bawah) -->
         <div class="login-vertical">
+
+          <!-- GUEST SECTION -->
           <div class="login-section" id="section-guest">
             <div class="guest-mascot">🐣</div>
             <p class="guest-desc">Masuk sebagai tamu! Pilih nama panggilan untuk sesi ini.</p>
@@ -60,7 +82,10 @@
             <button id="guest-login-btn" class="btn-primary btn-block">Masuk sebagai Tamu 🚪</button>
             <p class="guest-note">⚠️ Data tidak tersimpan saat keluar</p>
           </div>
+
           <div class="login-divider"><span>atau masuk dengan akun</span></div>
+
+          <!-- GOOGLE SECTION -->
           <div class="login-section" id="section-google">
             <button id="google-login-btn" class="btn-google">
               <svg width="20" height="20" viewBox="0 0 48 48">
@@ -72,7 +97,9 @@
               Masuk dengan Google
             </button>
           </div>
+
         </div>
+
         <p class="login-note">Dengan masuk, kamu setuju berinteraksi secara positif 🌟</p>
       </div>
     </div>
@@ -86,21 +113,40 @@
         <button id="close-theme-panel" class="btn-icon-sm" style="font-size:18px;">✕</button>
       </div>
       <div class="theme-grid">
-        <button class="theme-chip active" data-theme="default" title="Cozy Cafe"><span class="theme-swatch" style="background: linear-gradient(135deg,#fef6e4,#f4a96a)"></span><span class="theme-label">☕ Cozy Cafe</span></button>
-        <button class="theme-chip" data-theme="midnight" title="Midnight"><span class="theme-swatch" style="background: linear-gradient(135deg,#1a1a2e,#16213e)"></span><span class="theme-label">🌙 Midnight</span></button>
-        <button class="theme-chip" data-theme="forest" title="Forest"><span class="theme-swatch" style="background: linear-gradient(135deg,#e8f5e9,#a5d6a7)"></span><span class="theme-label">🌿 Forest</span></button>
-        <button class="theme-chip" data-theme="ocean" title="Ocean"><span class="theme-swatch" style="background: linear-gradient(135deg,#e3f2fd,#90caf9)"></span><span class="theme-label">🌊 Ocean</span></button>
-        <button class="theme-chip" data-theme="sakura" title="Sakura"><span class="theme-swatch" style="background: linear-gradient(135deg,#fce4ec,#f48fb1)"></span><span class="theme-label">🌸 Sakura</span></button>
-        <button class="theme-chip" data-theme="sunset" title="Sunset"><span class="theme-swatch" style="background: linear-gradient(135deg,#fff3e0,#ff8a65)"></span><span class="theme-label">🌅 Sunset</span></button>
-        <button class="theme-chip" data-theme="lavender" title="Lavender"><span class="theme-swatch" style="background: linear-gradient(135deg,#ede7f6,#b39ddb)"></span><span class="theme-label">💜 Lavender</span></button>
-        <button class="theme-chip" data-theme="matcha" title="Matcha"><span class="theme-swatch" style="background: linear-gradient(135deg,#f1f8e9,#8bc34a)"></span><span class="theme-label">🍵 Matcha</span></button>
+        <button class="theme-chip active" data-theme="default" title="Cozy Cafe">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#fef6e4,#f4a96a)"></span>
+          <span class="theme-label">☕ Cozy Cafe</span>
+        </button>
+        <button class="theme-chip" data-theme="midnight" title="Midnight">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#1a1a2e,#16213e)"></span>
+          <span class="theme-label">🌙 Midnight</span>
+        </button>
+        <button class="theme-chip" data-theme="forest" title="Forest">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#e8f5e9,#a5d6a7)"></span>
+          <span class="theme-label">🌿 Forest</span>
+        </button>
+        <button class="theme-chip" data-theme="ocean" title="Ocean">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#e3f2fd,#90caf9)"></span>
+          <span class="theme-label">🌊 Ocean</span>
+        </button>
+        <button class="theme-chip" data-theme="sakura" title="Sakura">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#fce4ec,#f48fb1)"></span>
+          <span class="theme-label">🌸 Sakura</span>
+        </button>
+        <button class="theme-chip" data-theme="sunset" title="Sunset">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#fff3e0,#ff8a65)"></span>
+          <span class="theme-label">🌅 Sunset</span>
+        </button>
+        <button class="theme-chip" data-theme="lavender" title="Lavender">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#ede7f6,#b39ddb)"></span>
+          <span class="theme-label">💜 Lavender</span>
+        </button>
+        <button class="theme-chip" data-theme="matcha" title="Matcha">
+          <span class="theme-swatch" style="background: linear-gradient(135deg,#f1f8e9,#8bc34a)"></span>
+          <span class="theme-label">🍵 Matcha</span>
+        </button>
       </div>
     </div>
-  </div>
-
-  <!-- ══════════════ EMOJI PICKER ══════════════ -->
-  <div id="emoji-picker" class="emoji-picker-popup hidden">
-    <div class="emoji-picker-grid" id="emoji-picker-grid"></div>
   </div>
 
   <!-- ══════════════ IMAGE LIGHTBOX ══════════════ -->
@@ -113,6 +159,23 @@
   </div>
 
   <!-- ══════════════ MODALS ══════════════ -->
+
+  <!-- YOUTUBE CUSTOM URL MODAL -->
+  <div id="yt-custom-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">🎵 Custom Audio YouTube</h3>
+      <p class="modal-sub">Tempel URL YouTube untuk diputar sebagai audio lo-fi kustom kamu!</p>
+      <label class="form-label">Label (nama track):</label>
+      <input type="text" id="yt-custom-label" class="text-input" placeholder="mis. Lofi favoritku…" maxlength="30" autocomplete="off" style="margin-bottom:10px;"/>
+      <label class="form-label">URL YouTube:</label>
+      <input type="text" id="yt-custom-url" class="text-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"/>
+      <p class="guest-note" style="margin-top:6px;">💡 Tip: Gunakan video lofi/musik panjang untuk pengalaman terbaik</p>
+      <div class="modal-actions">
+        <button id="yt-custom-confirm" class="btn-primary">▶ Putar</button>
+        <button id="yt-custom-cancel" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
+      </div>
+    </div>
+  </div>
 
   <!-- CREATE ROOM MODAL -->
   <div id="create-room-modal" class="modal-overlay hidden">
@@ -136,263 +199,269 @@
   <!-- JOIN ROOM WITH PASSWORD MODAL -->
   <div id="pw-modal" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 class="modal-title">🔒 Ruangan Terkunci</h3>
-      <p class="modal-sub" id="pw-modal-room-name">Masukkan password untuk bergabung.</p>
-      <label class="form-label">Password:</label>
+      <h3 class="modal-title">🔒 Ruangan Ini Berpassword</h3>
+      <p class="modal-sub" id="pw-modal-room-name"></p>
+      <label class="form-label">Masukkan Password:</label>
       <div class="pw-input-wrap">
         <input type="password" id="join-room-pw" class="text-input" placeholder="Password ruangan…" maxlength="40" autocomplete="off"/>
         <button id="toggle-join-pw-vis" class="btn-toggle-pw" type="button">👁️</button>
       </div>
       <p id="pw-error-msg" class="pw-error hidden">❌ Password salah, coba lagi!</p>
       <div class="modal-actions">
-        <button id="confirm-join-pw" class="btn-primary">Masuk 🚀</button>
+        <button id="confirm-join-pw" class="btn-primary">Masuk →</button>
         <button id="cancel-join-pw" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
       </div>
     </div>
   </div>
 
-  <!-- DELETE ROOM MODAL -->
+  <!-- DELETE ROOM CONFIRM MODAL -->
   <div id="delete-room-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <h3 class="modal-title">🗑️ Hapus Ruangan?</h3>
-      <p class="modal-sub">Semua pesan akan terhapus permanen. Tindakan ini tidak bisa dibatalkan!</p>
+      <p class="modal-sub">Semua pesan di ruangan ini akan dihapus permanen. Yakin?</p>
       <div class="modal-actions">
-        <button id="confirm-delete-room" class="btn-danger">Ya, Hapus! 🗑️</button>
+        <button id="confirm-delete-room" class="btn-danger">Hapus Sekarang</button>
         <button id="cancel-delete-room" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- YOUTUBE CUSTOM URL MODAL -->
-  <div id="yt-custom-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <h3 class="modal-title">▶️ Tambah Audio YouTube</h3>
-      <p class="modal-sub">Masukkan URL YouTube untuk diputar sebagai audio lofi kustom.</p>
-      <label class="form-label">Label (nama track):</label>
-      <input type="text" id="yt-custom-label" class="text-input" placeholder="mis. My Lofi Playlist…" maxlength="30" autocomplete="off" style="margin-bottom:10px;"/>
-      <label class="form-label">URL YouTube:</label>
-      <input type="text" id="yt-custom-url" class="text-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"/>
-      <p class="guest-note" style="margin-top:6px;">💡 Tip: Gunakan video YouTube lofi/musik panjang untuk pengalaman terbaik</p>
-      <div class="modal-actions">
-        <button id="yt-custom-confirm" class="btn-primary">Putar 🎵</button>
-        <button id="yt-custom-cancel" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Batal</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PROFILE MODAL -->
-  <div id="profile-modal" class="profile-modal hidden">
-    <div class="profile-card">
-      <h3>👤 Profil Kamu</h3>
-      <div id="profile-avatar-display" class="avatar-large">🐱</div>
-      <div class="emoji-selector">
-        <button class="emoji-opt">🐱</button><button class="emoji-opt">🐶</button><button class="emoji-opt">🐼</button>
-        <button class="emoji-opt">🦊</button><button class="emoji-opt">🐸</button><button class="emoji-opt">🐣</button>
-        <button class="emoji-opt">🦁</button><button class="emoji-opt">🐯</button><button class="emoji-opt">🐺</button>
-        <button class="emoji-opt">🦄</button><button class="emoji-opt">🐧</button><button class="emoji-opt">🐻</button>
-        <button class="emoji-opt">🌟</button><button class="emoji-opt">🌸</button><button class="emoji-opt">☕</button>
-        <button class="emoji-opt">🍀</button><button class="emoji-opt">🌈</button><button class="emoji-opt">🎯</button>
-      </div>
-      <div class="name-edit-section">
-        <p class="hint-text">Ubah nama tampilan:</p>
-        <input type="text" id="edit-name-input" class="text-input" maxlength="20" placeholder="Namamu…"/>
-      </div>
-      <div class="profile-temp-section">
-        <div class="profile-temp-title">
-          🌡️ Suhu Layar
-          <span id="temp-badge" class="temp-badge">Normal</span>
-        </div>
-        <div class="temp-slider-wrap">
-          <div class="temp-gradient-bar">
-            <span class="temp-pole">❄️</span>
-            <input type="range" id="screen-temp-slider" class="screen-temp-slider temp-track" min="0" max="100" step="1" value="0"/>
-            <span class="temp-pole">🔥</span>
-          </div>
-          <div class="temp-presets">
-            <button class="temp-preset" data-val="0">❄️<br/><small>Normal</small></button>
-            <button class="temp-preset" data-val="30">🌤️<br/><small>Sore</small></button>
-            <button class="temp-preset" data-val="55">🕯️<br/><small>Hangat</small></button>
-            <button class="temp-preset" data-val="80">🔥<br/><small>Panas</small></button>
-          </div>
-        </div>
-      </div>
-      <div class="profile-modal-actions">
-        <button id="save-profile-btn" class="btn-primary">Simpan ✨</button>
-        <button id="logout-btn" class="btn-danger">Keluar 👋</button>
-        <button id="close-profile-btn" class="btn-secondary">Tutup</button>
       </div>
     </div>
   </div>
 
   <!-- ══════════════ MAIN APP ══════════════ -->
   <div id="main-content" class="app-wrapper hidden">
-
+    
     <!-- HEADER -->
     <header class="app-header">
+      <!-- LEFT: Brand (slightly right) -->
       <div class="header-left">
-        <span class="header-logo">☕</span>
-        <span class="header-brand">FocusSpace</span>
-        <div class="header-timer-wrap">
-          <span id="header-timer" class="header-timer">25:00</span>
-          <button id="header-toggle-btn" class="header-timer-btn">▶</button>
-        </div>
+        <span class="brand-icon">☕</span>
+        <span class="brand-text">FocusSpace</span>
       </div>
 
+      <!-- CENTER: Session info -->
       <div class="header-center">
-        <div class="online-pill">
-          <span class="online-dot"></span>
-          <span id="online-count">Pilih ruangan dulu</span>
+        <div class="sesh-badge" id="session-badge">Sesi ke-<span id="sesh-num">1</span></div>
+        <button id="reset-sesh-btn" class="btn-reset-pomo" title="Reset hitungan sesi">🔄 Reset</button>
+
+        <!-- Pomodoro quick-timer strip in header -->
+        <div class="header-timer-strip">
+          <span id="header-timer" class="header-timer-num">25:00</span>
+          <button id="header-toggle-btn" class="header-play-btn" title="Play/Pause">▶</button>
         </div>
       </div>
 
+      <!-- RIGHT: Controls -->
       <div class="header-right">
+        <!-- Theme button -->
+        <button id="open-theme-btn" class="btn-header-icon" title="Ganti Tema">🎨</button>
+
         <div class="status-selector-wrap" id="status-selector-wrap">
           <button class="current-status-btn" id="current-status-btn">
             <span id="current-status-emoji">🧠</span>
             <span id="current-status-text">Fokus</span>
             <span class="status-arrow">▾</span>
           </button>
-          <div id="status-dropdown" class="status-dropdown hidden">
-            <button class="status-opt active-opt" data-status="focus">🧠 Fokus</button>
-            <button class="status-opt" data-status="studying">📚 Belajar</button>
-            <button class="status-opt" data-status="break">☕ Istirahat</button>
-            <button class="status-opt" data-status="idle">💤 Santai</button>
-            <button class="status-opt" data-status="away">🚶 Away</button>
+          <div class="status-dropdown hidden" id="status-dropdown">
+            <button class="status-opt" data-status="focus" data-emoji="🧠" data-label="Fokus">🧠 Fokus</button>
+            <button class="status-opt" data-status="break" data-emoji="☕" data-label="Istirahat">☕ Istirahat</button>
+            <button class="status-opt" data-status="studying" data-emoji="📚" data-label="Belajar">📚 Belajar</button>
+            <button class="status-opt" data-status="idle" data-emoji="💤" data-label="Santai">💤 Santai</button>
+            <button class="status-opt" data-status="away" data-emoji="🚶" data-label="Away">🚶 Away</button>
           </div>
         </div>
-        <button id="open-theme-btn" class="btn-header-icon" title="Tema">🎨</button>
-        <button id="profile-trigger" class="user-profile-widget">
-          <span id="widget-avatar">🐣</span>
-          <span id="widget-name">Tamu</span>
-        </button>
+
+        <div class="user-profile-widget" id="profile-trigger">
+          <div class="widget-avatar" id="widget-avatar">👤</div>
+          <span class="widget-name" id="widget-name">Memuat...</span>
+        </div>
+
+        <div class="online-pill">
+          <span class="online-dot"></span>
+          <span id="online-count">Pilih ruangan dulu</span>
+        </div>
       </div>
     </header>
 
-    <!-- DASHBOARD -->
-    <div class="main-dashboard-grid">
+    <!-- PROFILE MODAL -->
+    <div id="profile-modal" class="profile-modal hidden">
+      <div class="profile-card">
+        <h3>Pengaturan Profil ✨</h3>
+        <div class="avatar-edit-section">
+          <div class="avatar-large" id="profile-avatar-display">👤</div>
+          <p class="hint-text">Pilih Emoji untuk Foto Profilmu:</p>
+          <div class="emoji-selector">
+            <button class="emoji-opt">👤</button>
+            <button class="emoji-opt">🐱</button>
+            <button class="emoji-opt">🦊</button>
+            <button class="emoji-opt">🐼</button>
+            <button class="emoji-opt">🐸</button>
+            <button class="emoji-opt">☕</button>
+            <button class="emoji-opt">🎯</button>
+            <button class="emoji-opt">📚</button>
+            <button class="emoji-opt">🍿</button>
+            <button class="emoji-opt">🚀</button>
+            <button class="emoji-opt">🍀</button>
+            <button class="emoji-opt">🌈</button>
+          </div>
+        </div>
+        <div class="name-edit-section">
+          <label class="form-label">Ubah Nama Tampilan:</label>
+          <input type="text" id="edit-name-input" class="text-input" maxlength="20">
+        </div>
 
-      <!-- LEFT ASIDE -->
+        <!-- Screen Temperature -->
+        <div class="profile-temp-section">
+          <div class="profile-temp-title">
+            <span>🌡️</span> Temperatur Layar
+            <span class="temp-badge" id="temp-badge" style="margin-left:auto;">Netral</span>
+          </div>
+          <div class="temp-slider-wrap">
+            <div class="temp-gradient-bar">
+              <span class="temp-pole cool">❄️</span>
+              <div class="temp-track">
+                <input type="range" id="screen-temp-slider" class="screen-temp-slider" min="0" max="100" value="0" step="1"/>
+              </div>
+              <span class="temp-pole warm">🔥</span>
+            </div>
+            <div class="temp-presets">
+              <button class="temp-preset" data-val="0">Biru<br><small>Normal</small></button>
+              <button class="temp-preset" data-val="25">Siang<br><small>Segar</small></button>
+              <button class="temp-preset" data-val="50">Sore<br><small>Nyaman</small></button>
+              <button class="temp-preset" data-val="75">Malam<br><small>Hangat</small></button>
+              <button class="temp-preset" data-val="100">Lilin<br><small>Panas</small></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-modal-actions">
+          <button id="save-profile-btn" class="btn-primary">Simpan</button>
+          <button id="close-profile-btn" class="btn-ctrl" style="border-radius:12px; width:auto; padding:0 16px;">Batal</button>
+          <button id="logout-btn" class="btn-danger" style="margin-left:auto;">Keluar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-dashboard-grid">
+      
       <aside class="dashboard-left-aside">
 
         <!-- POMODORO TIMER -->
-        <section class="card card-timer">
-          <div class="card-header">
-            <span class="card-icon">⏱️</span>
-            <h2 class="card-title">Pomodoro</h2>
-            <span id="session-badge" class="session-badge">Sesi ke-<span id="sesh-num">1</span></span>
-          </div>
+        <section class="card card-pomo">
           <div class="pomo-body">
             <div class="pomo-left">
               <div class="timer-wrap">
-                <svg class="timer-svg" viewBox="0 0 140 140">
-                  <circle class="ring-bg" cx="70" cy="70" r="62"/>
-                  <circle id="ring-prog" class="ring-fg" cx="70" cy="70" r="62"/>
+                <svg class="timer-svg" viewBox="0 0 200 200">
+                  <circle class="ring-bg" cx="100" cy="100" r="82"/>
+                  <circle id="ring-prog" class="ring-fg" cx="100" cy="100" r="82"/>
                 </svg>
                 <div class="timer-inner">
                   <div id="timer-display" class="timer-num">25:00</div>
-                  <div id="timer-label" class="timer-lbl">Focus Time!</div>
+                  <div id="timer-label" class="timer-lbl">FOCUS TIME!</div>
                 </div>
               </div>
             </div>
             <div class="pomo-right">
               <div class="mode-tabs">
-                <button class="mtab active"><span class="mtab-emoji">🧠</span> Focus 25min</button>
-                <button class="mtab"><span class="mtab-emoji">☕</span> Break 5min</button>
-                <button class="mtab"><span class="mtab-emoji">🛋️</span> Long Break 15min</button>
+                <button class="mtab active" data-min="25" data-lbl="Focus Time!"><span class="mtab-emoji">🧠</span> Focus</button>
+                <button class="mtab" data-min="5" data-lbl="Short Break!"><span class="mtab-emoji">☕</span> Break</button>
+                <button class="mtab" data-min="15" data-lbl="Long Break!"><span class="mtab-emoji">🛋️</span> Long</button>
               </div>
               <div class="timer-controls">
+                <button id="toggle-btn" class="btn-play">
+                  <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor" class="ic"><path d="M8 5v14l11-7z"/></svg>
+                  <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor" class="ic hidden"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
                 <div class="timer-ctrl-group">
-                  <button id="toggle-btn" class="btn-play">
-                    <svg id="play-icon" class="ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    <svg id="pause-icon" class="ic hidden" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  <button id="reset-btn" class="btn-ctrl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="ic"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                   </button>
-                  <button id="reset-btn" class="btn-ctrl" title="Reset timer">
-                    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-6.59"/></svg>
-                  </button>
-                  <button id="skip-btn" class="btn-ctrl" title="Skip sesi">
-                    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                  <button id="skip-btn" class="btn-ctrl">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="ic"><path d="M6 18l8.5-6L6 6v12zM16 6h2v12h-2z"/></svg>
                   </button>
                 </div>
-                <div id="sesh-dots" class="sesh-dots">
-                  <div class="sdot"></div><div class="sdot"></div><div class="sdot"></div><div class="sdot"></div>
+              </div>
+              <div class="pomo-footer-info">
+                <div class="sesh-dots" id="sesh-dots">
+                  <span class="sdot"></span>
+                  <span class="sdot"></span>
+                  <span class="sdot"></span>
+                  <span class="sdot"></span>
                 </div>
-                <button id="reset-sesh-btn" class="btn-icon-sm" title="Reset sesi">↺</button>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- LO-FI MIXER — REVAMPED WITH YOUTUBE -->
+        <!-- LO-FI MIXER -->
         <section class="card card-mixer">
           <div class="card-header">
             <span class="card-icon">🎵</span>
             <h2 class="card-title">Lo-Fi Mixer</h2>
-            <button id="open-yt-custom" class="btn-yt-add" title="Tambah YouTube URL">+ YouTube</button>
+            <button id="open-yt-custom" class="btn-yt-custom" title="Putar YouTube URL kustom">+ YouTube</button>
           </div>
 
-          <!-- YouTube Player (hidden, audio only) -->
-          <div id="yt-player-wrap" class="yt-player-wrap">
-            <div id="yt-player"></div>
-            <div id="yt-now-playing" class="yt-now-playing hidden">
-              <span class="yt-np-icon">▶️</span>
-              <span id="yt-np-label" class="yt-np-label">Custom Track</span>
-              <button id="yt-stop-btn" class="yt-stop-btn" title="Stop YouTube">■</button>
-              <input type="range" id="yt-vol" class="mix-slider" min="0" max="100" step="5" value="50"/>
-              <span id="yt-vol-pct" class="mix-percentage">50%</span>
+          <!-- Hidden YouTube IFrame Player -->
+          <div id="yt-player" style="width:0;height:0;overflow:hidden;position:absolute;"></div>
+
+          <!-- YouTube Now Playing Bar -->
+          <div id="yt-now-playing" class="yt-now-playing hidden">
+            <span class="yt-np-icon">▶️</span>
+            <span id="yt-np-label" class="yt-np-label">Custom Track</span>
+            <div class="yt-vol-wrap">
+              <span>🔊</span>
+              <input type="range" id="yt-vol" class="yt-vol-slider" min="0" max="100" step="5" value="70"/>
+              <span id="yt-vol-pct" class="yt-vol-pct">70%</span>
             </div>
+            <button id="yt-stop-btn" class="yt-stop-btn" title="Stop">■</button>
           </div>
 
-          <!-- Built-in presets -->
-          <div class="mixer-presets">
-            <p class="mixer-section-label">🎧 Preset Lo-Fi</p>
-            <div class="mixer-grid">
-              <div class="mix-box">
-                <div class="mix-top">
-                  <span class="mix-emoji">☀️</span>
-                  <span class="mix-title">Morning Vibes</span>
-                  <span id="lofi1-pct" class="mix-percentage">0%</span>
-                </div>
-                <input type="range" id="lofi1-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-                <audio id="lofi1-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
+          <!-- YouTube Presets -->
+          <div class="mixer-section-label">▶ YouTube Presets</div>
+          <div class="yt-preset-list">
+            <button class="yt-preset-btn" data-vid="jfKfPfyJRdk" data-label="Lofi Girl — beats to relax/study">🎵 Lofi Girl</button>
+            <button class="yt-preset-btn" data-vid="5qap5aO4i9A" data-label="Lofi Hip Hop Radio">🌙 Lofi Hip Hop</button>
+            <button class="yt-preset-btn" data-vid="Na0w3Mz46GA" data-label="Coffee Shop Ambience">☕ Coffee Shop</button>
+            <button class="yt-preset-btn" data-vid="q76bMs-NwRk" data-label="Deep Focus Music">🧠 Deep Focus</button>
+          </div>
+
+          <!-- Built-in Ambient Sounds -->
+          <div class="mixer-section-label" style="margin-top:8px;">🎚 Ambient Mix</div>
+          <div class="mixer-grid">
+            <div class="mix-box">
+              <div class="mix-top">
+                <span class="mix-emoji">🌙</span>
+                <span class="mix-title">Midnight</span>
+                <span id="lofi1-pct" class="mix-percentage">0%</span>
               </div>
-              <div class="mix-box">
-                <div class="mix-top">
-                  <span class="mix-emoji">🌿</span>
-                  <span class="mix-title">Chill Study</span>
-                  <span id="lofi2-pct" class="mix-percentage">0%</span>
-                </div>
-                <input type="range" id="lofi2-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-                <audio id="lofi2-audio" loop src="https://cdn.pixabay.com/download/audio/2026/03/10/audio_64b4580116.mp3"></audio>
-              </div>
-              <div class="mix-box">
-                <div class="mix-top">
-                  <span class="mix-emoji">☕</span>
-                  <span class="mix-title">Café Beats</span>
-                  <span id="lofi3-pct" class="mix-percentage">0%</span>
-                </div>
-                <input type="range" id="lofi3-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-                <audio id="lofi3-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/22/audio_1364f85847.mp3"></audio>
-              </div>
-              <div class="mix-box">
-                <div class="mix-top">
-                  <span class="mix-emoji">🌧️</span>
-                  <span class="mix-title">Rainy Lo-Fi</span>
-                  <span id="lofi4-pct" class="mix-percentage">0%</span>
-                </div>
-                <input type="range" id="lofi4-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-                <audio id="lofi4-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/21/audio_b2f30c12e1.mp3"></audio>
-              </div>
+              <input type="range" id="lofi1-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+              <audio id="lofi1-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
             </div>
-          </div>
-
-          <!-- YouTube Lofi Presets -->
-          <div class="mixer-yt-presets">
-            <p class="mixer-section-label">▶️ YouTube Lofi Presets</p>
-            <div class="yt-preset-list">
-              <button class="yt-preset-btn" data-vid="jfKfPfyJRdk" data-label="Lofi Girl — beats to relax/study to">🎵 Lofi Girl</button>
-              <button class="yt-preset-btn" data-vid="5qap5aO4i9A" data-label="Lofi Hip Hop Radio">🌙 Lofi Hip Hop</button>
-              <button class="yt-preset-btn" data-vid="Na0w3Mz46GA" data-label="Coffee Shop Ambience">☕ Coffee Shop</button>
-              <button class="yt-preset-btn" data-vid="q76bMs-NwRk" data-label="Study Music — Deep Focus">🧠 Deep Focus</button>
+            <div class="mix-box">
+              <div class="mix-top">
+                <span class="mix-emoji">🌿</span>
+                <span class="mix-title">Chill Study</span>
+                <span id="lofi2-pct" class="mix-percentage">0%</span>
+              </div>
+              <input type="range" id="lofi2-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+              <audio id="lofi2-audio" loop src="https://cdn.pixabay.com/download/audio/2026/03/10/audio_64b4580116.mp3"></audio>
+            </div>
+            <div class="mix-box">
+              <div class="mix-top">
+                <span class="mix-emoji">☕</span>
+                <span class="mix-title">Café Beats</span>
+                <span id="lofi3-pct" class="mix-percentage">0%</span>
+              </div>
+              <input type="range" id="lofi3-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+              <audio id="lofi3-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/22/audio_1364f85847.mp3"></audio>
+            </div>
+            <div class="mix-box">
+              <div class="mix-top">
+                <span class="mix-emoji">🌧️</span>
+                <span class="mix-title">Rainy Lo-Fi</span>
+                <span id="lofi4-pct" class="mix-percentage">0%</span>
+              </div>
+              <input type="range" id="lofi4-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
+              <audio id="lofi4-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/21/audio_b2f30c12e1.mp3"></audio>
             </div>
           </div>
         </section>
@@ -418,46 +487,35 @@
 
       <main class="dashboard-right-main">
         <section class="card card-chat-layout-container">
-
+          
           <div class="chat-main-stream">
             <div class="card-header">
               <span class="card-icon">💬</span>
               <h2 class="card-title" id="room-status">Belum bergabung ke ruangan</h2>
               <button id="delete-room-btn" class="btn-danger-sm hidden" title="Hapus ruangan (hanya owner)">🗑️ Hapus</button>
             </div>
-
+            
             <div id="chat-section" class="chat-section-wrapper" style="display:none;">
-
-              <!-- Reply Preview Bar -->
-              <div id="reply-preview" class="reply-preview hidden">
-                <span class="reply-icon">↩️</span>
-                <div class="reply-preview-content">
-                  <span class="reply-to-name" id="reply-to-name"></span>
-                  <span class="reply-to-text" id="reply-to-text"></span>
-                </div>
-                <button id="cancel-reply" class="reply-cancel-btn">✕</button>
-              </div>
-
               <div id="chat-box" class="chat-box-stream"></div>
-
-              <!-- Typing Indicator -->
-              <div id="typing-indicator" class="typing-indicator hidden">
-                <div class="typing-bubble"><span></span><span></span><span></span></div>
-                <span id="typing-text" class="typing-text"></span>
+              
+              <!-- Image preview before send -->
+              <div id="img-preview-bar" class="img-preview-bar hidden">
+                <img id="img-preview-thumb" class="img-preview-thumb" src="" alt="preview"/>
+                <span id="img-preview-name" class="img-preview-name"></span>
+                <button id="img-preview-cancel" class="img-preview-cancel">✕</button>
               </div>
 
-              <!-- Image upload hidden input -->
+              <!-- Hidden file input -->
               <input type="file" id="img-upload-input" accept="image/*" style="display:none;"/>
 
               <div class="chat-input-row">
-                <button id="emoji-btn" class="btn-chat-action" title="Emoji">😊</button>
-                <button id="img-upload-btn" class="btn-chat-action" title="Kirim Gambar">🖼️</button>
+                <button id="img-upload-btn" class="btn-chat-icon" title="Kirim Gambar 🖼️">🖼️</button>
                 <input type="text" id="chat-input" class="text-input" placeholder="Kirim pesan semangat… 💪"/>
                 <button id="send-btn" class="btn-send">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </div>
-
+              
               <div class="react-bar" id="react-bar">
                 <button class="rbtn" data-msg="Semangat! 💪">💪</button>
                 <button class="rbtn" data-msg="Fokus bareng! 🎯">🎯</button>
@@ -495,7 +553,7 @@
               </div>
             </div>
 
-            <!-- DAILY QUOTE -->
+            <!-- DAILY QUOTE (new feature) -->
             <div class="sidebar-quote-box">
               <p class="sidebar-micro-title">💡 Kata Semangat</p>
               <div id="daily-quote" class="daily-quote-text">Memuat kutipan...</div>
