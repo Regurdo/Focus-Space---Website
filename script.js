@@ -837,6 +837,23 @@ if (googleLoginBtn) {
 // ── GUEST LOGIN ──
 const guestLoginBtn  = $('guest-login-btn');
 const guestNameInput = $('guest-name-input');
+
+function showGuestNameError(msg) {
+  if (!guestNameInput) return;
+  guestNameInput.style.borderColor = 'var(--red)';
+  let errEl = $('guest-name-error');
+  if (!errEl) {
+    errEl = document.createElement('p');
+    errEl.id = 'guest-name-error';
+    errEl.className = 'guest-note';
+    errEl.style.color = 'var(--red)';
+    guestNameInput.parentNode.insertAdjacentElement('afterend', errEl);
+  }
+  errEl.textContent = `❌ ${msg}`;
+  errEl.style.display = 'block';
+  setTimeout(() => { if (errEl) errEl.style.display = 'none'; }, 5000);
+}
+
 if (guestLoginBtn) {
   guestLoginBtn.addEventListener('click', async () => {
     const name = guestNameInput ? guestNameInput.value.trim() : '';
@@ -846,35 +863,35 @@ if (guestLoginBtn) {
     guestLoginBtn.textContent = '⏳ Memeriksa...';
 
     try {
+      // PENTING: Tamu HARUS login ke Firebase Auth (anonymous) dulu sebelum
+      // baca/tulis Realtime Database. Tanpa ini, semua request tamu akan
+      // ditolak (PERMISSION_DENIED) kalau rules database mensyaratkan
+      // "auth != null" — ini akar masalah "tidak bisa masuk / buat ruangan".
+      const cred = await auth.signInAnonymously();
+      const uid = cred.user.uid;
+
       const nameKey = name.toLowerCase().replace(/\s+/g, '_');
       const snap = await get(ref(db, `activeUsernames/${nameKey}`));
       if (snap.exists()) {
-        if (guestNameInput) {
-          guestNameInput.style.borderColor = 'var(--red)';
-          guestNameInput.focus();
-        }
-        let errEl = $('guest-name-error');
-        if (!errEl) {
-          errEl = document.createElement('p');
-          errEl.id = 'guest-name-error';
-          errEl.className = 'guest-note';
-          errEl.style.color = 'var(--red)';
-          guestNameInput.parentNode.insertAdjacentElement('afterend', errEl);
-        }
-        errEl.textContent = '❌ Username ini sedang dipakai, coba nama lain!';
-        errEl.style.display = 'block';
-        setTimeout(() => { if (errEl) errEl.style.display = 'none'; }, 4000);
+        showGuestNameError('Username ini sedang dipakai, coba nama lain!');
+        if (guestNameInput) guestNameInput.focus();
+        await auth.signOut().catch(() => {});
         return;
       }
 
-      const uid = 'guest_' + Math.random().toString(36).slice(2, 10);
       await set(ref(db, `activeUsernames/${nameKey}`), { uid, name, since: Date.now() });
       onDisconnect(ref(db, `activeUsernames/${nameKey}`)).remove();
 
       handleLoginSuccess(uid, name, '🐣', true);
     } catch(e) {
-      const uid = 'guest_' + Math.random().toString(36).slice(2, 10);
-      handleLoginSuccess(uid, name, '🐣', true);
+      console.error('Guest login error:', e);
+      if (e && e.code === 'auth/operation-not-allowed') {
+        showGuestNameError('Login tamu belum diaktifkan di Firebase (aktifkan "Anonymous" di Authentication > Sign-in method).');
+      } else if (e && e.code === 'PERMISSION_DENIED') {
+        showGuestNameError('Akses database ditolak. Cek Realtime Database Rules di Firebase Console.');
+      } else {
+        showGuestNameError('Gagal masuk, cek koneksi internet & coba lagi.');
+      }
     } finally {
       guestLoginBtn.disabled = false;
       guestLoginBtn.textContent = 'Masuk sebagai Tamu 🚪';
@@ -899,9 +916,7 @@ if (logoutBtn) {
       const nameKey = username.toLowerCase().replace(/\s+/g, '_');
       try { await remove(ref(db, `activeUsernames/${nameKey}`)); } catch(e) {}
     }
-    if (!isGuest) {
-      try { await auth.signOut(); } catch(e) {}
-    }
+    try { await auth.signOut(); } catch(e) {}
     username = ''; userAvatar = '👤'; userUid = ''; isGuest = false;
     mainContent.classList.add('hidden');
     loginOverlay.style.display = '';
@@ -984,19 +999,30 @@ if (confirmCreateRoom) {
     const rn = newRoomNameInput ? newRoomNameInput.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '') : '';
     if (!rn) { newRoomNameInput && newRoomNameInput.focus(); return; }
     const pw = newRoomPwInput ? newRoomPwInput.value.trim() : '';
-    const roomSnap = await get(ref(db, `rooms/${rn}/meta`));
-    if (roomSnap.exists()) {
-      alert(`Ruangan #${rn} sudah ada! Pilih nama lain.`);
-      return;
+
+    confirmCreateRoom.disabled = true;
+    confirmCreateRoom.textContent = '⏳ Membuat...';
+    try {
+      const roomSnap = await get(ref(db, `rooms/${rn}/meta`));
+      if (roomSnap.exists()) {
+        alert(`Ruangan #${rn} sudah ada! Pilih nama lain.`);
+        return;
+      }
+      await set(ref(db, `rooms/${rn}/meta`), {
+        ownerUid: userUid, ownerName: username,
+        hasPassword: pw.length > 0,
+        password: pw.length > 0 ? pw : null,
+        createdAt: Date.now()
+      });
+      createRoomModal.classList.add('hidden');
+      joinRoom(rn);
+    } catch(e) {
+      console.error('Create room error:', e);
+      alert('❌ Gagal membuat ruangan. Kemungkinan koneksi internet bermasalah atau akses database ditolak (cek Firebase Rules). Detail: ' + (e && e.message ? e.message : e));
+    } finally {
+      confirmCreateRoom.disabled = false;
+      confirmCreateRoom.textContent = 'Buat Ruangan 🎉';
     }
-    await set(ref(db, `rooms/${rn}/meta`), {
-      ownerUid: userUid, ownerName: username,
-      hasPassword: pw.length > 0,
-      password: pw.length > 0 ? pw : null,
-      createdAt: Date.now()
-    });
-    createRoomModal.classList.add('hidden');
-    joinRoom(rn);
   });
 }
 
@@ -1092,22 +1118,27 @@ function leaveRoom() {
 
 async function attemptJoinRoom(rn) {
   if (!rn) return;
-  const snap = await get(ref(db, `rooms/${rn}/meta`));
-  if (!snap.exists()) {
-    showChatToast('FocusSpace', `Ruangan #${rn} tidak ditemukan. Buat dulu ya! 🚪`);
-    return;
+  try {
+    const snap = await get(ref(db, `rooms/${rn}/meta`));
+    if (!snap.exists()) {
+      showChatToast('FocusSpace', `Ruangan #${rn} tidak ditemukan. Buat dulu ya! 🚪`);
+      return;
+    }
+    const meta = snap.val();
+    if (meta.hasPassword && meta.ownerUid !== userUid) {
+      pendingJoinRoom = rn;
+      if (pwModalRoomName) pwModalRoomName.textContent = `Ruangan: #${rn}`;
+      if (joinRoomPwInput) joinRoomPwInput.value = '';
+      if (pwErrorMsg) pwErrorMsg.classList.add('hidden');
+      pwModal.classList.remove('hidden');
+      setTimeout(() => joinRoomPwInput && joinRoomPwInput.focus(), 100);
+      return;
+    }
+    joinRoom(rn);
+  } catch(e) {
+    console.error('Join room error:', e);
+    showChatToast('FocusSpace', '❌ Gagal bergabung. Cek koneksi atau akses database (Firebase Rules).');
   }
-  const meta = snap.val();
-  if (meta.hasPassword && meta.ownerUid !== userUid) {
-    pendingJoinRoom = rn;
-    if (pwModalRoomName) pwModalRoomName.textContent = `Ruangan: #${rn}`;
-    if (joinRoomPwInput) joinRoomPwInput.value = '';
-    if (pwErrorMsg) pwErrorMsg.classList.add('hidden');
-    pwModal.classList.remove('hidden');
-    setTimeout(() => joinRoomPwInput && joinRoomPwInput.focus(), 100);
-    return;
-  }
-  joinRoom(rn);
 }
 
 function joinRoom(rn) {
