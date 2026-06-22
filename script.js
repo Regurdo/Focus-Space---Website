@@ -1771,4 +1771,27 @@ updateTimerDisplay();
   });
 
   window.mobileActivateTab = activateTab;
+
+  // ── MOBILE PANEL CLOSE BUTTONS ──
+  document.querySelectorAll('.mobile-panel-close').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const panelType = btn.dataset.closePanel;
+      if (tabs[panelType]) {
+        tabs[panelType].classList.remove('mobile-active');
+      }
+      // Switch back to chat tab
+      activateTab('chat');
+    });
+  });
+
+  // ── MOBILE SIDEBAR CLOSE BUTTON ──
+  const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+  if (closeSidebarBtn) {
+    closeSidebarBtn.addEventListener('click', () => {
+      if (sidebar) sidebar.classList.remove('mobile-active');
+      if (chatContainer) chatContainer.classList.remove('sidebar-open');
+      activateTab('chat');
+    });
+  }
 })();
