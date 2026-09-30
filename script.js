@@ -21,6 +21,7 @@ function getAudioCtx() {
 function playNotifSound(type = 'chat') {
   try {
     const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
@@ -45,6 +46,19 @@ function playNotifSound(type = 'chat') {
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
       osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+    } else if (type === 'check') {
+      // "Pluck" dua nada naik — sound effect memuaskan saat mencentang target
+      const t = ctx.currentTime;
+      [[660, 0], [990, 0.09]].forEach(([freq, delay]) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(freq, t + delay);
+        g.gain.setValueAtTime(0.0001, t + delay);
+        g.gain.exponentialRampToValueAtTime(0.28, t + delay + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.22);
+        o.start(t + delay); o.stop(t + delay + 0.25);
+      });
     }
   } catch (e) {}
 }
@@ -188,13 +202,6 @@ function setPlayState(isPlaying) {
   }
 }
 
-function updateSyncInfo() {
-  const el = $('timer-sync-info');
-  if (!el) return;
-  el.textContent = roomName ? `🔗 Sinkron di #${roomName}` : '👤 Timer pribadi';
-  el.classList.toggle('synced', !!roomName);
-}
-
 function renderTimerState(prevMode = null) {
   ensureTimerState();
   applyModeVisuals();
@@ -203,7 +210,6 @@ function renderTimerState(prevMode = null) {
   updateSessionDots();
   setPlayState(!!timerState.running);
   updateTimerDisplay();
-  updateSyncInfo();
   const modeToStatus = { focus: 'focus', break: 'break', long: 'break' };
   if (prevMode !== null && prevMode !== timerState.mode && modeToStatus[timerState.mode]) {
     updateUserStatus(modeToStatus[timerState.mode]);
@@ -437,7 +443,11 @@ function renderTodos() {
     const check = document.createElement('div');
     check.className = 'todo-check';
     check.textContent = todo.done ? '✓' : '';
-    check.addEventListener('click', () => { todos[i].done = !todos[i].done; saveTodos(); });
+    check.addEventListener('click', () => {
+      todos[i].done = !todos[i].done;
+      if (todos[i].done) playNotifSound('check');
+      saveTodos();
+    });
     const text = document.createElement('span');
     text.className = 'todo-text'; text.textContent = todo.text;
     const del = document.createElement('button');
