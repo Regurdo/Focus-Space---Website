@@ -866,24 +866,16 @@ body {
 .sesh-dots { display: flex; gap: 5px; }
 .sdot { width: 9px; height: 9px; background: rgba(44,26,14,0.12); border-radius: 50%; border: 1.5px solid var(--card-border); transition: background 0.3s; }
 .sdot.done { background: var(--accent); }
-
-/* ══════════════════════════════════════════
-   LO-FI MIXER
-══════════════════════════════════════════ */
-.mixer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mix-box { background: var(--warm-white); border: 2px solid var(--card-border); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; transition: var(--transition); }
-.mix-box:hover { box-shadow: var(--shadow-sm); }
-.mix-top { display: flex; align-items: center; font-size: 12px; font-weight: 700; gap: 4px; color: var(--text-main); }
-.mix-title { font-family: var(--font-head); font-size: 12px; }
-.mix-percentage { color: var(--text-muted); font-size: 11px; margin-left: auto; }
-.mix-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: rgba(44,26,14,0.1); border-radius: 4px; outline: none; border: 1.5px solid var(--card-border); overflow: hidden; }
-.mix-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--peach-dark); border: 2px solid var(--card-border); border-radius: 50%; cursor: pointer; box-shadow: -100px 0 0 100px var(--tan); }
+.pomo-footer-info { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.timer-sync-info { font-family: var(--font-head); font-size: 9.5px; font-weight: 700; color: var(--text-muted); background: var(--warm-white); border: 1.5px solid var(--card-border); border-radius: 999px; padding: 3px 8px; white-space: nowrap; letter-spacing: 0.3px; transition: var(--transition); max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.timer-sync-info.synced { color: var(--green-dark); background: rgba(126, 200, 160, 0.15); border-color: var(--green); }
 
 /* ══════════════════════════════════════════
    TODO LIST
 ══════════════════════════════════════════ */
-.todo-inner { display: flex; flex-direction: column; max-height: 200px; min-height: 0; }
-.todo-list-scroll { flex: 1; overflow-y: auto; padding-right: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; }
+.card-todo { flex: 1; min-height: 280px; }
+.todo-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.todo-list-scroll { flex: 1; min-height: 140px; overflow-y: auto; padding-right: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; }
 .todo-list-scroll::-webkit-scrollbar { width: 6px; } .todo-list-scroll::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; opacity: 0.3; }
 .todo-item { display: flex; align-items: center; gap: 8px; background: var(--warm-white); border: 2px solid var(--card-border); border-radius: var(--radius-sm); padding: 6px 10px; animation: popIn 0.2s both; transition: var(--transition); }
 .todo-item:hover { box-shadow: var(--shadow-sm); }
@@ -1126,30 +1118,6 @@ body {
 .warm-filter { position: fixed; inset: 0; z-index: 9999; pointer-events: none; background: transparent; transition: background 0.5s ease; mix-blend-mode: multiply; }
 
 /* ══════════════════════════════════════════
-   LO-FI MIXER — YOUTUBE EXTENDED
-══════════════════════════════════════════ */
-.mixer-section-label { font-family: var(--font-head); font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.btn-yt-custom { background: linear-gradient(135deg,#ff4444,#cc0000); color: white; border: 2px solid var(--card-border); border-radius: var(--radius-sm); padding: 3px 10px; font-family: var(--font-head); font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); }
-.btn-yt-custom:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--card-border); }
-
-.yt-now-playing { display: flex; align-items: center; gap: 6px; background: rgba(255,60,60,0.07); border: 2px solid rgba(255,60,60,0.25); border-radius: var(--radius-sm); padding: 6px 10px; margin-bottom: 8px; }
-.yt-np-icon { font-size: 14px; flex-shrink: 0; }
-.yt-np-label { font-family: var(--font-head); font-size: 11px; font-weight: 700; color: var(--text-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
-.yt-vol-wrap { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-.yt-vol-wrap span { font-size: 12px; }
-.yt-vol-slider { -webkit-appearance: none; appearance: none; width: 60px; height: 6px; background: rgba(44,26,14,0.15); border-radius: 4px; outline: none; border: 1px solid var(--card-border); overflow: hidden; cursor: pointer; }
-.yt-vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; background: var(--red); border: 1.5px solid var(--card-border); border-radius: 50%; cursor: pointer; box-shadow: -60px 0 0 60px rgba(255,60,60,0.4); }
-.yt-vol-pct { font-size: 10px; color: var(--text-muted); font-weight: 700; min-width: 28px; }
-.yt-stop-btn { background: var(--red); color: white; border: 1.5px solid var(--card-border); border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer; flex-shrink: 0; transition: var(--transition); }
-.yt-stop-btn:hover { background: var(--red-dark); transform: scale(1.05); }
-
-.yt-preset-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
-.yt-preset-btn { background: var(--warm-white); border: 2px solid var(--card-border); border-radius: var(--radius-sm); padding: 6px 10px; font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--text-main); cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); transition: var(--transition); }
-.yt-preset-btn:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--card-border); background: var(--peach); }
-.yt-preset-btn.playing { background: var(--yellow); border-color: var(--card-border); }
-.yt-preset-btn.playing::before { content: '▶ '; }
-
-/* ══════════════════════════════════════════
    CHAT IMAGE SEND
 ══════════════════════════════════════════ */
 .btn-chat-icon { background: var(--warm-white); border: 2.5px solid var(--card-border); border-radius: var(--radius-sm); width: 40px; height: 40px; font-size: 18px; cursor: pointer; box-shadow: var(--shadow-sm); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
@@ -1182,78 +1150,6 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-thumb { background: rgba(44,26,14,0.2); border-radius: 4px; }
 
-/* ══════════════════════════════════════════
-   USER YOUTUBE PRESETS
-══════════════════════════════════════════ */
-.user-yt-preset-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 4px;
-  padding: 2px;
-}
-.user-yt-empty {
-  text-align: center;
-  font-size: 13px;
-  color: var(--text-muted);
-  padding: 12px 0;
-  font-family: var(--font-body);
-}
-.user-yt-preset-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--peach);
-  border: 1.5px solid var(--card-border);
-  border-radius: var(--radius-sm);
-  padding: 7px 10px;
-  transition: var(--transition);
-}
-.user-yt-preset-item.playing-now {
-  background: var(--orange);
-  color: white;
-  border-color: var(--orange-deep);
-}
-.user-yt-preset-play {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  padding: 0;
-  flex-shrink: 0;
-  line-height: 1;
-  color: var(--accent);
-  transition: var(--transition);
-}
-.user-yt-preset-item.playing-now .user-yt-preset-play {
-  color: white;
-}
-.user-yt-preset-play:hover { transform: scale(1.15); }
-.user-yt-preset-label {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-body);
-  color: var(--text-main);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.user-yt-preset-item.playing-now .user-yt-preset-label { color: white; }
-.user-yt-preset-del {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 2px;
-  color: var(--red);
-  flex-shrink: 0;
-  transition: var(--transition);
-  line-height: 1;
-}
-.user-yt-preset-del:hover { transform: scale(1.2); color: var(--red-dark); }
 .modal-divider {
   border: none;
   border-top: 1.5px dashed var(--peach-dark);
@@ -1476,10 +1372,9 @@ body {
   }
 
   /* ══════════════════════════════════════
-     PANEL OVERLAY (Timer / Musik / Target)
+     PANEL OVERLAY (Timer / Target)
   ════════════════════════════════════════ */
   .card-pomo,
-  .card-mixer,
   .card-todo {
     display: none;
     position: fixed;
@@ -1499,7 +1394,6 @@ body {
     padding-top: 20px;
   }
   .card-pomo.mobile-active,
-  .card-mixer.mobile-active,
   .card-todo.mobile-active {
     display: flex;
     flex-direction: column;
@@ -1708,14 +1602,6 @@ body {
   .btn-ctrl { width: 44px; height: 44px; }
   .sesh-dots { justify-content: center; gap: 7px; }
   .sdot { width: 10px; height: 10px; }
-
-  /* ══════════════════════════════════════
-     MIXER
-  ════════════════════════════════════════ */
-  .card-mixer { padding: 14px; padding-top: 20px; }
-  .mixer-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .yt-preset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .yt-preset-btn { font-size: 12px; padding: 8px; }
 
   /* ══════════════════════════════════════
      TODO

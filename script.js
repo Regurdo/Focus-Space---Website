@@ -8,12 +8,6 @@
 const $ = id => document.getElementById(id);
 const RING_C = 515;
 
-let running = false;
-let timerId = null;
-let totalSecs = 25 * 60;
-let timeLeft = totalSecs;
-let sessionNum = 1;
-let currentMode = 'focus';
 let focusModeActive = false;
 let chatNotifEnabled = true;
 
@@ -55,7 +49,7 @@ function playNotifSound(type = 'chat') {
   } catch (e) {}
 }
 
-// ── POMODORO TIMER ──
+// ── POMODORO TIMER (STATE-BASED + SINKRON PER RUANGAN) ──
 const modeConfig = {
   focus: { min: 25, label: 'Focus Time!', ring: '', tab: 0 },
   break: { min: 5,  label: 'Short Break! ☕', ring: 'break-clr', tab: 1 },
@@ -77,34 +71,103 @@ const modeTabs      = document.querySelectorAll('.mtab');
 const focusRing     = $('focus-ring');
 
 // Header timer elements
-const headerTimer    = $('header-timer');
+const headerTimer     = $('header-timer');
 const headerToggleBtn = $('header-toggle-btn');
+
+// Bentuk state timer:
+// { mode, running, durationSecs, startedAt, remainSecs, sessionNum }
+//   - running=true  → sisa waktu = durationSecs - ((nowMs() - startedAt) / 1000)
+//   - running=false → sisa waktu = remainSecs
+// Saat berada di ruangan, state ini disinkronkan lewat Firebase
+// (rooms/{namaRuangan}/timer) — semua orang di ruangan melihat & mengontrol
+// timer yang sama. Di luar ruangan, timer berjalan secara pribadi.
+let timerState = null;
+let endFiredKey = '';
+let lastTimerSig = null;
+let unsubscribeRoomTimer = null;
+let lastShownSecs = -1;
+
+function defaultTimerState(overrides = {}) {
+  return Object.assign({
+    mode: 'focus',
+    running: false,
+    durationSecs: 25 * 60,
+    startedAt: 0,
+    remainSecs: 25 * 60,
+    sessionNum: 1,
+  }, overrides);
+}
+
+function ensureTimerState() {
+  if (!timerState) timerState = defaultTimerState();
+}
+
+function nowMs() {
+  // Koreksi jam perangkat dengan offset server Firebase saat di ruangan,
+  // supaya hitungan mundur sama persis di semua perangkat.
+  return Date.now() + (roomName ? serverTimeOffset : 0);
+}
+
+function getTimeLeft(state = timerState) {
+  if (!state) return 25 * 60;
+  if (!state.running) {
+    return Math.max(0, Math.round(state.remainSecs != null ? state.remainSecs : (state.durationSecs || 0)));
+  }
+  const elapsed = Math.floor((nowMs() - (state.startedAt || 0)) / 1000);
+  return Math.max(0, (state.durationSecs || 0) - elapsed);
+}
 
 function formatTime(s) {
   return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 }
 
+function updateSessionDots() {
+  if (!seshDots) return;
+  ensureTimerState();
+  const n = timerState.sessionNum || 1;
+  const dots = seshDots.querySelectorAll('.sdot');
+  const completed = (n - 1) % 4;
+  dots.forEach((d, i) => {
+    d.classList.toggle('done', i < completed || (completed === 0 && n > 1));
+  });
+}
+
+function syncSessionBadge() {
+  ensureTimerState();
+  const n = timerState.sessionNum || 1;
+  if (seshNum) seshNum.textContent = n;
+  if (sessionBadge) sessionBadge.innerHTML = `Sesi ke-<span id="sesh-num">${n}</span>`;
+}
+
+function syncModeTabs() {
+  ensureTimerState();
+  const idx = modeConfig[timerState.mode] ? modeConfig[timerState.mode].tab : 0;
+  modeTabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+}
+
+function updateRing(timeLeft) {
+  ensureTimerState();
+  const total = Math.max(1, timerState.durationSecs || 1);
+  const offset = RING_C * (1 - timeLeft / total);
+  if (ringProg)  ringProg.style.strokeDashoffset  = offset;
+  if (focusRing) focusRing.style.strokeDashoffset = offset;
+}
+
 function updateTimerDisplay() {
+  ensureTimerState();
+  const timeLeft = getTimeLeft();
   const t = formatTime(timeLeft);
   if (timerDisplay) timerDisplay.textContent = t;
   if (headerTimer) headerTimer.textContent = t;
   const focusBigEl = $('focus-timer-big');
   if (focusModeActive && focusBigEl) focusBigEl.textContent = t;
   document.title = `${t} — FocusSpace`;
-  updateRing();
+  updateRing(timeLeft);
 }
 
-function updateRing() {
-  const offset = RING_C * (1 - timeLeft / totalSecs);
-  if (ringProg)  ringProg.style.strokeDashoffset  = offset;
-  if (focusRing) focusRing.style.strokeDashoffset = offset;
-}
-
-function applyMode(mode) {
-  const cfg = modeConfig[mode];
-  currentMode = mode;
-  totalSecs = cfg.min * 60;
-  timeLeft = totalSecs;
+function applyModeVisuals() {
+  ensureTimerState();
+  const cfg = modeConfig[timerState.mode] || modeConfig.focus;
   [ringProg, focusRing].forEach(r => {
     if (!r) return;
     r.classList.remove('break-clr','long-clr');
@@ -113,13 +176,9 @@ function applyMode(mode) {
   if (timerLabel) timerLabel.textContent = cfg.label;
   const focusSub = $('focus-sub-txt');
   if (focusSub) focusSub.textContent = cfg.label;
-  updateTimerDisplay();
-  const modeToStatus = { focus: 'focus', break: 'break', long: 'break' };
-  if (modeToStatus[mode]) updateUserStatus(modeToStatus[mode]);
 }
 
 function setPlayState(isPlaying) {
-  running = isPlaying;
   if (playIcon)  playIcon.classList.toggle('hidden', isPlaying);
   if (pauseIcon) pauseIcon.classList.toggle('hidden', !isPlaying);
   if (toggleBtn) toggleBtn.classList.toggle('running', isPlaying);
@@ -129,112 +188,228 @@ function setPlayState(isPlaying) {
   }
 }
 
+function updateSyncInfo() {
+  const el = $('timer-sync-info');
+  if (!el) return;
+  el.textContent = roomName ? `🔗 Sinkron di #${roomName}` : '👤 Timer pribadi';
+  el.classList.toggle('synced', !!roomName);
+}
+
+function renderTimerState(prevMode = null) {
+  ensureTimerState();
+  applyModeVisuals();
+  syncModeTabs();
+  syncSessionBadge();
+  updateSessionDots();
+  setPlayState(!!timerState.running);
+  updateTimerDisplay();
+  updateSyncInfo();
+  const modeToStatus = { focus: 'focus', break: 'break', long: 'break' };
+  if (prevMode !== null && prevMode !== timerState.mode && modeToStatus[timerState.mode]) {
+    updateUserStatus(modeToStatus[timerState.mode]);
+  }
+}
+
+// ── LOGIKA FASE (sama seperti perilaku lama: focus → break/long → focus) ──
+function computeNextPhase(state) {
+  const curSession = state.sessionNum || 1;
+  const isFocus = state.mode === 'focus';
+  const sessionNum = isFocus ? curSession + 1 : curSession;
+  let nextMode;
+  if (isFocus) {
+    nextMode = ((sessionNum - 1) % 4 === 0) ? 'long' : 'break';
+  } else {
+    nextMode = 'focus';
+  }
+  const dur = modeConfig[nextMode].min * 60;
+  return { mode: nextMode, running: false, durationSecs: dur, startedAt: 0, remainSecs: dur, sessionNum };
+}
+
+function writeTimerState(partial, action = 'update') {
+  ensureTimerState();
+  if (roomName) {
+    const next = Object.assign({}, timerState, partial, {
+      updatedBy: userUid || '',
+      updatedByName: username || '',
+      action,
+    });
+    timerState = next; // optimis — onValue akan konfirmasi dari server
+    renderTimerState();
+    set(ref(db, `rooms/${roomName}/timer`), next).catch(() => {
+      showChatToast('FocusSpace', '⚠️ Gagal sinkron timer. Cek Firebase Rules untuk path rooms/');
+    });
+  } else {
+    timerState = Object.assign({}, timerState, partial);
+    renderTimerState();
+  }
+}
+
+// ── KONTROL TIMER ──
+function toggleTimer() {
+  ensureTimerState();
+  if (timerState.running) {
+    writeTimerState({ running: false, remainSecs: getTimeLeft() }, 'pause');
+  } else if (getTimeLeft() <= 0) {
+    // Waktu sudah habis tapi fase belum maju → langsung ke fase berikutnya
+    writeTimerState(computeNextPhase(timerState), 'skip');
+  } else {
+    writeTimerState({ running: true, startedAt: nowMs() }, 'start');
+  }
+}
+
+function resetTimer() {
+  ensureTimerState();
+  const full = modeConfig[timerState.mode].min * 60;
+  endFiredKey = '';
+  writeTimerState({ running: false, durationSecs: full, remainSecs: full, startedAt: 0 }, 'reset');
+  if (!roomName) document.title = 'FocusSpace ☕';
+}
+
+function skipTimer() {
+  ensureTimerState();
+  endFiredKey = '';
+  writeTimerState(computeNextPhase(timerState), 'skip');
+}
+
+function resetSessionCount() {
+  ensureTimerState();
+  const full = modeConfig.focus.min * 60;
+  endFiredKey = '';
+  writeTimerState({ mode: 'focus', running: false, durationSecs: full, remainSecs: full, startedAt: 0, sessionNum: 1 }, 'session-reset');
+}
+
+function changeMode(mode) {
+  const cfg = modeConfig[mode];
+  if (!cfg) return;
+  ensureTimerState();
+  endFiredKey = '';
+  writeTimerState({ mode, running: false, durationSecs: cfg.min * 60, remainSecs: cfg.min * 60, startedAt: 0 }, 'mode');
+}
+
 modeTabs.forEach((tab, i) => {
   tab.addEventListener('click', () => {
-    if (running) return;
-    modeTabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    applyMode(['focus','break','long'][i]);
+    ensureTimerState();
+    if (timerState.running) return; // tidak bisa ganti mode saat timer berjalan
+    changeMode(['focus','break','long'][i]);
   });
 });
 
-function startTimer() {
-  setPlayState(true);
-  timerId = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay();
-    if (timeLeft <= 0) {
-      clearInterval(timerId); timerId = null;
-      setPlayState(false);
-      onTimerEnd();
-    }
-  }, 1000);
-}
-
-function pauseTimer() {
-  clearInterval(timerId); timerId = null;
-  setPlayState(false);
-}
-
-if (toggleBtn) {
-  toggleBtn.addEventListener('click', () => {
-    if (!running) startTimer(); else pauseTimer();
-  });
-}
-
-// Header play/pause
-if (headerToggleBtn) {
-  headerToggleBtn.addEventListener('click', () => {
-    if (!running) startTimer(); else pauseTimer();
-  });
-}
-
-if (resetBtn) {
-  resetBtn.addEventListener('click', () => {
-    clearInterval(timerId); timerId = null;
-    setPlayState(false);
-    timeLeft = totalSecs;
-    updateTimerDisplay();
-    document.title = 'FocusSpace ☕';
-  });
-}
+if (toggleBtn) toggleBtn.addEventListener('click', toggleTimer);
+if (headerToggleBtn) headerToggleBtn.addEventListener('click', toggleTimer);
+if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+if (skipBtn) skipBtn.addEventListener('click', skipTimer);
 
 const resetSeshBtn = $('reset-sesh-btn');
 if (resetSeshBtn) {
   resetSeshBtn.addEventListener('click', () => {
-    if (confirm('Reset sesi kembali ke sesi 1?')) {
-      sessionNum = 1;
-      if (seshNum)      seshNum.textContent = sessionNum;
-      if (sessionBadge) sessionBadge.innerHTML = `Sesi ke-<span id="sesh-num">1</span>`;
-      updateSessionDots();
-      applyMode('focus');
-      modeTabs.forEach(t => t.classList.remove('active'));
-      modeTabs[0].classList.add('active');
+    if (confirm('Reset sesi kembali ke sesi 1?')) resetSessionCount();
+  });
+}
+
+function onPhaseEnded() {
+  ensureTimerState();
+  playNotifSound('timer');
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('FocusSpace ☕', {
+      body: timerState.mode === 'focus'
+        ? `Sesi ${timerState.sessionNum || 1} selesai! Istirahat yuk 🎉`
+        : `Istirahat selesai! Yuk fokus lagi 🧠`,
+      icon: 'https://em-content.zobj.net/source/apple/354/hot-beverage_2615.png'
+    });
+  }
+}
+
+// ── TICK LOOP — dihitung dari timestamp, bukan decrement (akurat & anti-drift) ──
+setInterval(() => {
+  ensureTimerState();
+  const timeLeft = getTimeLeft();
+  if (timeLeft !== lastShownSecs) {
+    lastShownSecs = timeLeft;
+    updateTimerDisplay();
+  }
+  if (timerState.running && timeLeft <= 0) {
+    const key = `${timerState.mode}:${timerState.startedAt}:${timerState.durationSecs}`;
+    if (endFiredKey !== key) {
+      endFiredKey = key;
+      onPhaseEnded(); // bunyi + notifikasi di SETIAP perangkat
     }
-  });
-}
+    if (roomName) {
+      // Advance atomik via transaction: hanya SATU klien yang berhasil
+      // memindahkan fase — klien lain abort karena state sudah maju.
+      try {
+        ref(db, `rooms/${roomName}/timer`).transaction(cur => {
+          if (!cur || !cur.running) return; // sudah dipindahkan klien lain
+          const elapsed = (Date.now() + serverTimeOffset) - (cur.startedAt || 0);
+          if (elapsed < (cur.durationSecs || 0) * 1000) return; // belum selesai
+          return Object.assign({}, cur, computeNextPhase(cur), {
+            updatedBy: userUid || '',
+            updatedByName: username || '',
+            action: 'end',
+          });
+        });
+      } catch (e) {}
+    } else {
+      const prevMode = timerState.mode;
+      timerState = Object.assign({}, timerState, computeNextPhase(timerState));
+      endFiredKey = '';
+      lastShownSecs = -1;
+      renderTimerState(prevMode);
+    }
+  }
+}, 250);
 
-if (skipBtn) {
-  skipBtn.addEventListener('click', () => {
-    clearInterval(timerId); timerId = null;
-    setPlayState(false);
-    onTimerEnd(true);
-  });
-}
+// ── SINKRONISASI TIMER RUANGAN (FIREBASE REALTIME DATABASE) ──
+const TIMER_ACTION_TOASTS = {
+  'start': n => `${n} memulai timer ⏱️`,
+  'pause': n => `${n} menghentikan timer ⏸️`,
+  'reset': n => `${n} me-reset timer 🔄`,
+  'skip':  n => `${n} melewati sesi ⏭️`,
+  'mode':  n => `${n} mengganti mode timer 🎯`,
+  'session-reset': n => `${n} mereset hitungan sesi 🔢`,
+};
 
-function onTimerEnd(silent = false) {
-  if (!silent) {
-    playNotifSound('timer');
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('FocusSpace ☕', {
-        body: currentMode === 'focus'
-          ? `Sesi ${sessionNum} selesai! Istirahat yuk 🎉`
-          : `Istirahat selesai! Yuk fokus lagi 🧠`,
-        icon: 'https://em-content.zobj.net/source/apple/354/hot-beverage_2615.png'
+function subscribeRoomTimer(rn) {
+  if (unsubscribeRoomTimer) { unsubscribeRoomTimer(); unsubscribeRoomTimer = null; }
+  unsubscribeRoomTimer = onValue(ref(db, `rooms/${rn}/timer`), snap => {
+    if (roomName !== rn) return;
+    if (snap.exists()) {
+      const val = snap.val() || {};
+      const prevMode = timerState ? timerState.mode : null;
+      const sig = [!!val.running, val.mode, val.startedAt || 0,
+                   val.remainSecs != null ? val.remainSecs : -1,
+                   val.durationSecs || 0, val.sessionNum || 1].join('|');
+      if (lastTimerSig !== null && sig !== lastTimerSig && roomName === rn &&
+          val.action && TIMER_ACTION_TOASTS[val.action] &&
+          val.updatedBy && val.updatedBy !== userUid) {
+        showChatToast('⏱️ Timer Ruangan', TIMER_ACTION_TOASTS[val.action](val.updatedByName || 'Seseorang'));
+      }
+      lastTimerSig = sig;
+      timerState = defaultTimerState({
+        mode: modeConfig[val.mode] ? val.mode : 'focus',
+        running: !!val.running,
+        durationSecs: val.durationSecs || 25 * 60,
+        startedAt: val.startedAt || 0,
+        remainSecs: val.remainSecs != null ? val.remainSecs : (val.durationSecs || 25 * 60),
+        sessionNum: val.sessionNum || 1,
+      });
+      endFiredKey = '';
+      lastShownSecs = -1;
+      renderTimerState(prevMode);
+    } else {
+      // Ruangan belum punya state timer → inisialisasi
+      const init = defaultTimerState({
+        updatedBy: userUid || '',
+        updatedByName: username || '',
+        action: 'init',
+      });
+      timerState = init;
+      endFiredKey = '';
+      lastShownSecs = -1;
+      renderTimerState();
+      set(ref(db, `rooms/${rn}/timer`), init).catch(() => {
+        showChatToast('FocusSpace', '⚠️ Gagal inisialisasi timer ruangan. Cek Firebase Rules.');
       });
     }
-  }
-  if (currentMode === 'focus') {
-    sessionNum++;
-    if (seshNum) seshNum.textContent = sessionNum;
-    updateSessionDots();
-    const isLong = (sessionNum - 1) % 4 === 0;
-    applyMode(isLong ? 'long' : 'break');
-    modeTabs.forEach(t => t.classList.remove('active'));
-    modeTabs[isLong ? 2 : 1].classList.add('active');
-  } else {
-    applyMode('focus');
-    modeTabs.forEach(t => t.classList.remove('active'));
-    modeTabs[0].classList.add('active');
-  }
-}
-
-function updateSessionDots() {
-  if (!seshDots) return;
-  const dots = seshDots.querySelectorAll('.sdot');
-  const completed = (sessionNum - 1) % 4;
-  dots.forEach((d, i) => {
-    d.classList.toggle('done', i < completed || (completed === 0 && sessionNum > 1));
   });
 }
 
@@ -242,263 +417,6 @@ if ('Notification' in window && Notification.permission === 'default') {
   Notification.requestPermission();
 }
 
-// ── LO-FI AUDIO MIXER ──
-const audioSliders = [
-  { slider: $('lofi1-vol'), audio: $('lofi1-audio'), pct: $('lofi1-pct') },
-  { slider: $('lofi2-vol'), audio: $('lofi2-audio'), pct: $('lofi2-pct') },
-  { slider: $('lofi3-vol'), audio: $('lofi3-audio'), pct: $('lofi3-pct') },
-  { slider: $('lofi4-vol'), audio: $('lofi4-audio'), pct: $('lofi4-pct') },
-];
-audioSliders.forEach(({ slider, audio, pct }) => {
-  if (!slider) return;
-  function sync() {
-    const v = parseFloat(slider.value);
-    audio.volume = v;
-    const p = Math.round(v * 100);
-    if (pct) pct.textContent = `${p}%`;
-    slider.style.setProperty('--fill', `${p}%`);
-    if (v > 0 && audio.paused) audio.play().catch(() => {});
-    else if (v === 0) audio.pause();
-  }
-  slider.addEventListener('input', sync);
-  sync();
-});
-
-// ═══════════════════════════════════════════════
-//  YOUTUBE PLAYER
-// ═══════════════════════════════════════════════
-let ytPlayer = null;
-let ytReady = false;
-let ytApiLoaded = false;
-let currentYtVid = null;
-let activePresetBtn = null;
-let pendingYtPlay = null;
-
-window.onYouTubeIframeAPIReady = function() {
-  ytApiLoaded = true;
-  if (document.getElementById('yt-player')) {
-    initYtPlayer();
-  }
-};
-
-function initYtPlayer() {
-  if (ytPlayer) return;
-  ytPlayer = new YT.Player('yt-player', {
-    height: '0', width: '0',
-    playerVars: { autoplay: 0, controls: 0, origin: location.origin },
-    events: {
-      onReady: () => {
-        ytReady = true;
-        if (pendingYtPlay) {
-          const { videoId, label } = pendingYtPlay;
-          pendingYtPlay = null;
-          playYouTube(videoId, label);
-        }
-      },
-      onStateChange: (e) => {
-        if (e.data === YT.PlayerState.ENDED) stopYouTube();
-      },
-      onError: () => {
-        showChatToast('FocusSpace', '❌ Video tidak bisa diputar (mungkin dibatasi)');
-        stopYouTube();
-      }
-    }
-  });
-}
-
-function extractYtId(url) {
-  const patterns = [
-    /youtu\.be\/([^?&]+)/,
-    /[?&]v=([^?&]+)/,
-    /youtube\.com\/embed\/([^?&]+)/,
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
-  if (/^[A-Za-z0-9_-]{11}$/.test(url.trim())) return url.trim();
-  return null;
-}
-
-function playYouTube(videoId, label) {
-  if (!ytReady || !ytPlayer) {
-    pendingYtPlay = { videoId, label };
-    if (ytApiLoaded && !ytPlayer) initYtPlayer();
-    const nowPlaying = $('yt-now-playing');
-    const npLabel = $('yt-np-label');
-    if (nowPlaying) nowPlaying.classList.remove('hidden');
-    if (npLabel) npLabel.textContent = '⏳ ' + (label || 'Custom Track');
-    return;
-  }
-  currentYtVid = videoId;
-  ytPlayer.loadVideoById(videoId);
-  const vol = parseInt($('yt-vol') ? $('yt-vol').value : '70');
-  ytPlayer.setVolume(vol);
-  ytPlayer.playVideo();
-  const nowPlaying = $('yt-now-playing');
-  const npLabel = $('yt-np-label');
-  if (nowPlaying) nowPlaying.classList.remove('hidden');
-  if (npLabel) npLabel.textContent = label || 'Custom Track';
-}
-
-function stopYouTube() {
-  pendingYtPlay = null;
-  if (ytPlayer && ytReady) ytPlayer.stopVideo();
-  currentYtVid = null;
-  const nowPlaying = $('yt-now-playing');
-  if (nowPlaying) nowPlaying.classList.add('hidden');
-  if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
-  activeUserPresetId = null;
-}
-
-// YouTube volume
-const ytVol = $('yt-vol');
-const ytVolPct = $('yt-vol-pct');
-if (ytVol) {
-  ytVol.addEventListener('input', () => {
-    const v = parseInt(ytVol.value);
-    if (ytPlayer && ytReady) ytPlayer.setVolume(v);
-    if (ytVolPct) ytVolPct.textContent = `${v}%`;
-  });
-}
-
-// Stop button
-const ytStopBtn = $('yt-stop-btn');
-if (ytStopBtn) ytStopBtn.addEventListener('click', stopYouTube);
-
-// YouTube preset buttons
-document.querySelectorAll('.yt-preset-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const vid = btn.dataset.vid;
-    const label = btn.dataset.label;
-    if (activePresetBtn === btn) { stopYouTube(); return; }
-    if (activePresetBtn) activePresetBtn.classList.remove('playing');
-    activePresetBtn = btn;
-    btn.classList.add('playing');
-    playYouTube(vid, label);
-  });
-});
-
-// ── USER YOUTUBE PRESETS ──
-const YT_PRESET_LOCAL_KEY = 'fs-yt-presets';
-let userYtPresets = [];
-let activeUserPresetId = null;
-
-async function loadYtPresets() {
-  if (!isGuest && userUid) {
-    try {
-      const snap = await get(ref(db, `userPresets/${userUid}/ytPresets`));
-      userYtPresets = snap.exists() ? (snap.val() || []) : [];
-    } catch (e) {
-      userYtPresets = [];
-    }
-  } else {
-    try {
-      userYtPresets = JSON.parse(localStorage.getItem(YT_PRESET_LOCAL_KEY + '_' + userUid) || '[]');
-    } catch (e) { userYtPresets = []; }
-  }
-  renderUserYtPresets();
-}
-
-async function saveYtPresets() {
-  if (!isGuest && userUid) {
-    try {
-      await set(ref(db, `userPresets/${userUid}/ytPresets`), userYtPresets);
-    } catch(e) {}
-  } else {
-    localStorage.setItem(YT_PRESET_LOCAL_KEY + '_' + userUid, JSON.stringify(userYtPresets));
-  }
-}
-
-function renderUserYtPresets() {
-  const list  = $('user-yt-preset-list');
-  const empty = $('user-yt-empty');
-  if (!list) return;
-  Array.from(list.children).forEach(c => { if (c !== empty) c.remove(); });
-  if (userYtPresets.length === 0) {
-    if (empty) empty.style.display = 'block';
-    return;
-  }
-  if (empty) empty.style.display = 'none';
-  userYtPresets.forEach(preset => {
-    const item = document.createElement('div');
-    item.className = 'user-yt-preset-item' + (activeUserPresetId === preset.id ? ' playing-now' : '');
-    item.dataset.id = preset.id;
-
-    const playBtn = document.createElement('button');
-    playBtn.className = 'user-yt-preset-play';
-    playBtn.title = activeUserPresetId === preset.id ? 'Hentikan' : 'Putar';
-    playBtn.textContent = activeUserPresetId === preset.id ? '⏹' : '▶';
-    playBtn.addEventListener('click', () => {
-      if (activeUserPresetId === preset.id) {
-        stopYouTube();
-        activeUserPresetId = null;
-        renderUserYtPresets();
-      } else {
-        if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
-        activeUserPresetId = preset.id;
-        playYouTube(preset.vid, preset.label);
-        renderUserYtPresets();
-      }
-    });
-
-    const label = document.createElement('span');
-    label.className = 'user-yt-preset-label';
-    label.textContent = preset.label;
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'user-yt-preset-del';
-    delBtn.title = 'Hapus preset';
-    delBtn.textContent = '🗑';
-    delBtn.addEventListener('click', () => {
-      if (activeUserPresetId === preset.id) { stopYouTube(); activeUserPresetId = null; }
-      userYtPresets = userYtPresets.filter(p => p.id !== preset.id);
-      saveYtPresets();
-      renderUserYtPresets();
-    });
-
-    item.appendChild(playBtn);
-    item.appendChild(label);
-    item.appendChild(delBtn);
-    list.appendChild(item);
-  });
-}
-
-// YouTube Custom URL Modal
-const openYtCustom  = $('open-yt-custom');
-const ytCustomModal = $('yt-custom-modal');
-const ytCustomConfirm = $('yt-custom-confirm');
-const ytCustomCancel  = $('yt-custom-cancel');
-
-if (openYtCustom) openYtCustom.addEventListener('click', () => {
-  if (ytCustomModal) ytCustomModal.classList.remove('hidden');
-  loadYtPresets();
-});
-if (ytCustomCancel) ytCustomCancel.addEventListener('click', () => ytCustomModal && ytCustomModal.classList.add('hidden'));
-if (ytCustomConfirm) {
-  ytCustomConfirm.addEventListener('click', async () => {
-    const urlInput   = $('yt-custom-url');
-    const labelInput = $('yt-custom-label');
-    const url   = urlInput   ? urlInput.value.trim() : '';
-    const label = labelInput ? labelInput.value.trim() || 'Custom Track' : 'Custom Track';
-    if (!url) { if (urlInput) urlInput.focus(); return; }
-    const vid = extractYtId(url);
-    if (!vid) { showChatToast('FocusSpace', '❌ URL YouTube tidak valid!'); return; }
-
-    const newPreset = { id: Date.now().toString(36), label, vid };
-    userYtPresets.push(newPreset);
-    await saveYtPresets();
-
-    if (activePresetBtn) { activePresetBtn.classList.remove('playing'); activePresetBtn = null; }
-    activeUserPresetId = newPreset.id;
-    playYouTube(vid, label);
-    renderUserYtPresets();
-
-    if (urlInput) urlInput.value = '';
-    if (labelInput) labelInput.value = '';
-    showChatToast('FocusSpace', `✅ Preset "${label}" disimpan & diputar!`);
-  });
-}
 
 // ── TODO LIST ──
 const todoList  = $('todo-list');
@@ -559,10 +477,11 @@ if (focusFab) {
     focusModeActive = true;
     focusOverlay.classList.remove('hidden');
     if (focusRing) {
+      ensureTimerState();
       focusRing.classList.remove('break-clr','long-clr');
-      const cfg = modeConfig[currentMode];
+      const cfg = modeConfig[timerState.mode];
       if (cfg.ring) focusRing.classList.add(cfg.ring);
-      focusRing.style.strokeDashoffset = RING_C * (1 - timeLeft / totalSecs);
+      focusRing.style.strokeDashoffset = RING_C * (1 - getTimeLeft() / Math.max(1, timerState.durationSecs));
     }
     updateTimerDisplay();
   });
@@ -778,6 +697,11 @@ function remove(r)           { return r.remove(); }
 function onDisconnect(r)     { return r.onDisconnect(); }
 async function get(r)        { return r.once('value'); }
 
+// Sinkronisasi jam dengan server Firebase — penting agar hitungan timer
+// ruangan sama persis di semua perangkat (koreksi selisih jam perangkat).
+let serverTimeOffset = 0;
+onValue(ref(db, '.info/serverTimeOffset'), snap => { serverTimeOffset = snap.val() || 0; });
+
 let username    = '';
 let userAvatar  = '👤';
 let userUid     = '';
@@ -814,10 +738,6 @@ function handleLoginSuccess(uid, displayName, avatar, guest = false) {
   if (mainContent) mainContent.classList.remove('hidden');
   initQuote();
   listenToActiveRooms();
-  setTimeout(() => {
-    if (ytApiLoaded && !ytPlayer) initYtPlayer();
-    loadYtPresets();
-  }, 300);
 }
 
 // ── GOOGLE LOGIN ──
@@ -1099,6 +1019,7 @@ function leaveRoom() {
   if (unsubscribeUsers)    { unsubscribeUsers();    unsubscribeUsers    = null; }
   if (unsubscribeMsgs)     { unsubscribeMsgs();     unsubscribeMsgs     = null; }
   if (unsubscribeRoomMeta) { unsubscribeRoomMeta(); unsubscribeRoomMeta = null; }
+  if (unsubscribeRoomTimer){ unsubscribeRoomTimer();unsubscribeRoomTimer = null; }
   roomName = '';
   roomOwnerUid = '';
   roomOwnerName = '';
@@ -1114,6 +1035,20 @@ function leaveRoom() {
   const ownerInfo = $('room-owner-info');
   if (ownerInfo) ownerInfo.classList.add('hidden');
   prevMemberCount = 0;
+
+  // Kembali ke mode timer pribadi — dijeda di waktu tersisa terakhir
+  ensureTimerState();
+  timerState = defaultTimerState({
+    mode: timerState.mode,
+    running: false,
+    durationSecs: Math.max(1, timerState.durationSecs || 25 * 60),
+    remainSecs: getTimeLeft(),
+    startedAt: 0,
+    sessionNum: timerState.sessionNum || 1,
+  });
+  endFiredKey = '';
+  lastTimerSig = null;
+  renderTimerState();
 }
 
 async function attemptJoinRoom(rn) {
@@ -1224,6 +1159,10 @@ function joinRoom(rn) {
 
   const msgsRef = ref(db, `rooms/${roomName}/messages`);
   unsubscribeMsgs = onChildAdded(msgsRef, snap => appendMessage(snap.val()));
+
+  // ── Sinkronkan timer ruangan (semua orang punya hitungan yang sama) ──
+  lastTimerSig = null;
+  subscribeRoomTimer(rn);
 }
 
 if (joinBtn) {
@@ -1746,13 +1685,13 @@ function nameToColor(name) {
 }
 
 // ── INIT ──
-updateTimerDisplay();
+ensureTimerState();
+renderTimerState();
 
 // ── MOBILE TAB NAVIGATION ──
 (function() {
   const tabs = {
     timer: document.querySelector('.card-pomo'),
-    music: document.querySelector('.card-mixer'),
     todo:  document.querySelector('.card-todo'),
   };
   const sidebar = document.querySelector('.chat-room-sidebar');

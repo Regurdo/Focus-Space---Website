@@ -160,32 +160,6 @@
 
   <!-- ══════════════ MODALS ══════════════ -->
 
-  <!-- YOUTUBE CUSTOM URL MODAL -->
-  <div id="yt-custom-modal" class="modal-overlay hidden">
-    <div class="modal-card" style="max-width:420px;">
-      <h3 class="modal-title">🎵 YouTube Presets Kamu</h3>
-      <p class="modal-sub">Tambah & kelola preset YouTube pribadimu. Tersimpan otomatis!</p>
-
-      <!-- User preset list -->
-      <div id="user-yt-preset-list" class="user-yt-preset-list">
-        <p class="user-yt-empty" id="user-yt-empty">✨ Belum ada preset. Tambah di bawah!</p>
-      </div>
-
-      <div class="modal-divider"></div>
-
-      <p class="form-label" style="margin-bottom:6px;">➕ Tambah Preset Baru:</p>
-      <label class="form-label">Nama / Label:</label>
-      <input type="text" id="yt-custom-label" class="text-input" placeholder="mis. Lofi favoritku…" maxlength="30" autocomplete="off" style="margin-bottom:8px;"/>
-      <label class="form-label">URL YouTube:</label>
-      <input type="text" id="yt-custom-url" class="text-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"/>
-      <p class="guest-note" style="margin-top:6px;">💡 Tip: Gunakan video lofi/musik panjang untuk pengalaman terbaik</p>
-      <div class="modal-actions">
-        <button id="yt-custom-confirm" class="btn-primary">+ Simpan & Putar</button>
-        <button id="yt-custom-cancel" class="btn-ctrl" style="border-radius:12px;width:auto;padding:0 16px;">Tutup</button>
-      </div>
-    </div>
-  </div>
-
   <!-- CREATE ROOM MODAL -->
   <div id="create-room-modal" class="modal-overlay hidden">
     <div class="modal-card">
@@ -397,82 +371,8 @@
                   <span class="sdot"></span>
                   <span class="sdot"></span>
                 </div>
+                <div id="timer-sync-info" class="timer-sync-info">👤 Timer pribadi</div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- LO-FI MIXER -->
-        <section class="card card-mixer">
-          <button class="mobile-panel-close" data-close-panel="music" title="Tutup">✕</button>
-          <div class="card-header">
-            <span class="card-icon">🎵</span>
-            <h2 class="card-title">Lo-Fi Mixer</h2>
-            <button id="open-yt-custom" class="btn-yt-custom" title="Putar YouTube URL kustom">+ YouTube</button>
-          </div>
-
-          <!-- Hidden YouTube IFrame Player -->
-          <div id="yt-player" style="width:0;height:0;overflow:hidden;position:absolute;"></div>
-
-          <!-- YouTube Now Playing Bar -->
-          <div id="yt-now-playing" class="yt-now-playing hidden">
-            <span class="yt-np-icon">▶️</span>
-            <span id="yt-np-label" class="yt-np-label">Custom Track</span>
-            <div class="yt-vol-wrap">
-              <span>🔊</span>
-              <input type="range" id="yt-vol" class="yt-vol-slider" min="0" max="100" step="5" value="70"/>
-              <span id="yt-vol-pct" class="yt-vol-pct">70%</span>
-            </div>
-            <button id="yt-stop-btn" class="yt-stop-btn" title="Stop">■</button>
-          </div>
-
-          <!-- YouTube Presets -->
-          <div class="mixer-section-label">▶ YouTube Presets</div>
-          <div class="yt-preset-list">
-            <button class="yt-preset-btn" data-vid="jfKfPfyJRdk" data-label="Lofi Girl — beats to relax/study">🎵 Lofi Girl</button>
-            <button class="yt-preset-btn" data-vid="5qap5aO4i9A" data-label="Lofi Hip Hop Radio">🌙 Lofi Hip Hop</button>
-            <button class="yt-preset-btn" data-vid="Na0w3Mz46GA" data-label="Coffee Shop Ambience">☕ Coffee Shop</button>
-            <button class="yt-preset-btn" data-vid="q76bMs-NwRk" data-label="Deep Focus Music">🧠 Deep Focus</button>
-          </div>
-
-          <!-- Built-in Ambient Sounds -->
-          <div class="mixer-section-label" style="margin-top:8px;">🎚 Ambient Mix</div>
-          <div class="mixer-grid">
-            <div class="mix-box">
-              <div class="mix-top">
-                <span class="mix-emoji">🌙</span>
-                <span class="mix-title">Midnight</span>
-                <span id="lofi1-pct" class="mix-percentage">0%</span>
-              </div>
-              <input type="range" id="lofi1-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-              <audio id="lofi1-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
-            </div>
-            <div class="mix-box">
-              <div class="mix-top">
-                <span class="mix-emoji">🌿</span>
-                <span class="mix-title">Chill Study</span>
-                <span id="lofi2-pct" class="mix-percentage">0%</span>
-              </div>
-              <input type="range" id="lofi2-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-              <audio id="lofi2-audio" loop src="https://cdn.pixabay.com/download/audio/2026/03/10/audio_64b4580116.mp3"></audio>
-            </div>
-            <div class="mix-box">
-              <div class="mix-top">
-                <span class="mix-emoji">☕</span>
-                <span class="mix-title">Café Beats</span>
-                <span id="lofi3-pct" class="mix-percentage">0%</span>
-              </div>
-              <input type="range" id="lofi3-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-              <audio id="lofi3-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/22/audio_1364f85847.mp3"></audio>
-            </div>
-            <div class="mix-box">
-              <div class="mix-top">
-                <span class="mix-emoji">🌧️</span>
-                <span class="mix-title">Rainy Lo-Fi</span>
-                <span id="lofi4-pct" class="mix-percentage">0%</span>
-              </div>
-              <input type="range" id="lofi4-vol" class="mix-slider" min="0" max="1" step="0.05" value="0"/>
-              <audio id="lofi4-audio" loop src="https://cdn.pixabay.com/download/audio/2026/04/21/audio_b2f30c12e1.mp3"></audio>
             </div>
           </div>
         </section>
@@ -620,10 +520,6 @@
         <span class="mbn-icon">⏱️</span>
         <span class="mbn-label">Timer</span>
       </button>
-      <button class="mbn-btn" data-tab="music">
-        <span class="mbn-icon">🎵</span>
-        <span class="mbn-label">Musik</span>
-      </button>
       <button class="mbn-btn" data-tab="todo">
         <span class="mbn-icon">📋</span>
         <span class="mbn-label">Target</span>
@@ -665,8 +561,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <!-- YouTube IFrame API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
   <!-- App -->
   <script src="script.js"></script>
 </body>
