@@ -153,6 +153,51 @@
     </div>
   </div>
 
+  <!-- ══════════════ MUSIC PANEL ══════════════ -->
+  <div id="music-panel" class="music-panel hidden">
+    <div class="music-panel-card">
+      <div class="music-panel-header">
+        <span class="music-panel-title">🎧 Musik Cozy</span>
+        <button id="close-music-panel" class="btn-icon-sm" style="font-size:18px;">✕</button>
+      </div>
+      <div class="music-track-list">
+        <button class="music-track" data-track="kopi">
+          <span class="mt-emoji">☕</span>
+          <span class="mt-info">
+            <span class="mt-name">Kopi Senja</span>
+            <span class="mt-desc">Lo-fi hangat untuk menemani fokus</span>
+          </span>
+          <span class="mt-eq"><i></i><i></i><i></i></span>
+        </button>
+        <button class="music-track" data-track="hujan">
+          <span class="mt-emoji">🌧️</span>
+          <span class="mt-info">
+            <span class="mt-name">Hujan di Jendela</span>
+            <span class="mt-desc">Suara hujan lembut & chord tenang</span>
+          </span>
+          <span class="mt-eq"><i></i><i></i><i></i></span>
+        </button>
+        <button class="music-track" data-track="buku">
+          <span class="mt-emoji">📚</span>
+          <span class="mt-info">
+            <span class="mt-name">Perpustakaan Senin</span>
+            <span class="mt-desc">Nada kotak musik yang rincah</span>
+          </span>
+          <span class="mt-eq"><i></i><i></i><i></i></span>
+        </button>
+        <button class="music-track" data-track="malam">
+          <span class="mt-emoji">🌙</span>
+          <span class="mt-info">
+            <span class="mt-name">Malam Berbintang</span>
+            <span class="mt-desc">Pad lambat, dreamy buat malam hari</span>
+          </span>
+          <span class="mt-eq"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+      <button id="music-stop-btn" class="music-stop">⏹ Berhentikan musik</button>
+    </div>
+  </div>
+
   <!-- ══════════════ IMAGE LIGHTBOX ══════════════ -->
   <div id="img-lightbox" class="img-lightbox hidden">
     <div class="img-lightbox-bg"></div>
@@ -229,11 +274,11 @@
         <div class="sesh-badge" id="session-badge">Sesi ke-<span id="sesh-num">1</span></div>
         <button id="reset-sesh-btn" class="btn-reset-pomo" title="Reset hitungan sesi">🔄 Reset</button>
 
-        <!-- Pomodoro quick-timer strip in header -->
-        <div class="header-timer-strip">
-          <span id="header-timer" class="header-timer-num">25:00</span>
-          <button id="header-toggle-btn" class="header-play-btn" title="Play/Pause">▶</button>
-        </div>
+        <!-- Musik cozy: putar lagu latar -->
+        <button id="music-btn" class="header-music-btn" title="Musik Cozy">
+          <span id="music-btn-emoji">🎧</span>
+          <span id="music-btn-label">Musik</span>
+        </button>
       </div>
 
       <!-- RIGHT: Controls -->

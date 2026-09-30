@@ -675,6 +675,68 @@ body {
 }
 
 /* ══════════════════════════════════════════
+   MUSIC PANEL — 4 lagu cozy generatif
+══════════════════════════════════════════ */
+.music-panel {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+  z-index: 2500;
+  animation: slideDown 0.25s both;
+}
+.music-panel-card {
+  background: var(--card-bg);
+  border: 3px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  width: 340px;
+}
+.music-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.music-panel-title {
+  font-family: var(--font-head);
+  font-size: 16px; font-weight: 700;
+  color: var(--text-main);
+}
+.music-track-list { display: flex; flex-direction: column; gap: 8px; }
+.music-track {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--warm-white);
+  border: 2.5px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  cursor: pointer; text-align: left;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.music-track:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--card-border); background: var(--peach); }
+.music-track.active { background: var(--yellow); transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--card-border); }
+.mt-emoji { font-size: 22px; line-height: 1; }
+.mt-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.mt-name { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: var(--text-main); }
+.mt-desc { font-size: 10.5px; color: var(--text-muted); font-weight: 600; }
+.mt-eq { display: none; align-items: flex-end; gap: 2px; height: 14px; }
+.music-track.active .mt-eq { display: flex; }
+.mt-eq i { width: 3px; background: var(--accent-deep); border-radius: 2px; animation: eqBounce 0.9s ease-in-out infinite; }
+.mt-eq i:nth-child(1) { height: 60%; animation-delay: 0s; }
+.mt-eq i:nth-child(2) { height: 100%; animation-delay: 0.25s; }
+.mt-eq i:nth-child(3) { height: 45%; animation-delay: 0.5s; }
+@keyframes eqBounce { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+.music-stop {
+  margin-top: 10px; width: 100%;
+  background: var(--warm-white);
+  border: 2px dashed var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 8px; cursor: pointer;
+  font-family: var(--font-head); font-size: 12px; font-weight: 600;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+.music-stop:hover:not(:disabled) { background: var(--red); color: white; border-style: solid; }
+.music-stop:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════
    APP HEADER — REDESIGNED
 ══════════════════════════════════════════ */
 .app-wrapper {
@@ -734,32 +796,28 @@ body {
 }
 .btn-reset-pomo:hover { background: var(--red); color: white; transform: scale(1.03); }
 
-/* Header mini-timer strip */
-.header-timer-strip {
-  display: flex; align-items: center; gap: 4px;
+/* Header music button */
+.header-music-btn {
+  display: flex; align-items: center; gap: 6px;
   background: var(--peach);
   border: 2px solid var(--card-border);
   border-radius: 12px;
-  padding: 3px 8px;
-  box-shadow: var(--shadow-sm);
+  padding: 4px 12px;
+  font-family: var(--font-head); font-size: 12px; font-weight: 700;
+  color: var(--text-main); cursor: pointer;
+  box-shadow: var(--shadow-sm); transition: var(--transition);
+  white-space: nowrap;
 }
-.header-timer-num {
-  font-family: var(--font-head);
-  font-size: 14px; font-weight: 700;
-  color: var(--text-main);
-  letter-spacing: 0.5px;
+.header-music-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.header-music-btn:active { transform: translateY(1px); box-shadow: var(--shadow-sm); }
+.header-music-btn.playing {
+  background: var(--green); color: #fff;
+  animation: musicPulse 1.6s ease-in-out infinite;
 }
-.header-play-btn {
-  background: var(--accent); color: white;
-  border: 2px solid var(--card-border);
-  border-radius: 8px; width: 22px; height: 22px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 9px; cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow-sm);
+@keyframes musicPulse {
+  0%, 100% { box-shadow: var(--shadow-sm), 0 0 0 0 rgba(126,200,160,0.45); }
+  50%      { box-shadow: var(--shadow-md), 0 0 0 5px rgba(126,200,160,0.16); }
 }
-.header-play-btn:hover { transform: scale(1.1); }
-.header-play-btn.running { background: var(--yellow); color: var(--text-main); }
 
 .header-right {
   display: flex; align-items: center; gap: 8px;
@@ -1228,7 +1286,7 @@ body {
   .header-center { gap: 6px; }
   .sesh-badge { font-size: 11px; padding: 2px 8px; }
   .btn-reset-pomo { display: none; }
-  .header-timer-num { font-size: 13px; }
+  .header-music-btn { font-size: 11px; padding: 3px 10px; }
 
   /* Stack dashboard */
   .main-dashboard-grid {
@@ -1319,16 +1377,8 @@ body {
   }
   .sesh-badge { display: none; }
   .btn-reset-pomo { display: none; }
-  .header-timer-strip {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 12px;
-    flex-shrink: 0;
-  }
-  .header-timer-num { font-size: 15px; }
-  .header-play-btn { width: 24px; height: 24px; font-size: 9px; border-radius: 7px; }
+  .header-music-btn { padding: 4px 10px; font-size: 11px; }
+  .header-music-btn #music-btn-label { max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
 
   .header-right {
     display: flex;
@@ -1653,6 +1703,16 @@ body {
     border-bottom: none;
   }
   .theme-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+
+  /* Music panel: jadi bottom sheet di mobile */
+  .music-panel {
+    top: auto !important; left: 0 !important;
+    transform: none;
+    right: 0 !important;
+    bottom: 64px;
+    width: 100%;
+  }
+  .music-panel-card { width: 100%; border-radius: 16px 16px 0 0; border-bottom: none; padding: 14px; }
 
   /* Image preview bar */
   .img-preview-bar { font-size: 11px; padding: 6px 10px; gap: 6px; }

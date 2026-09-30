@@ -84,10 +84,6 @@ const seshDots      = $('sesh-dots');
 const modeTabs      = document.querySelectorAll('.mtab');
 const focusRing     = $('focus-ring');
 
-// Header timer elements
-const headerTimer     = $('header-timer');
-const headerToggleBtn = $('header-toggle-btn');
-
 // Bentuk state timer:
 // { mode, running, durationSecs, startedAt, remainSecs, sessionNum }
 //   - running=true  → sisa waktu = durationSecs - ((nowMs() - startedAt) / 1000)
@@ -172,7 +168,6 @@ function updateTimerDisplay() {
   const timeLeft = getTimeLeft();
   const t = formatTime(timeLeft);
   if (timerDisplay) timerDisplay.textContent = t;
-  if (headerTimer) headerTimer.textContent = t;
   const focusBigEl = $('focus-timer-big');
   if (focusModeActive && focusBigEl) focusBigEl.textContent = t;
   document.title = `${t} — FocusSpace`;
@@ -196,10 +191,6 @@ function setPlayState(isPlaying) {
   if (playIcon)  playIcon.classList.toggle('hidden', isPlaying);
   if (pauseIcon) pauseIcon.classList.toggle('hidden', !isPlaying);
   if (toggleBtn) toggleBtn.classList.toggle('running', isPlaying);
-  if (headerToggleBtn) {
-    headerToggleBtn.textContent = isPlaying ? '⏸' : '▶';
-    headerToggleBtn.classList.toggle('running', isPlaying);
-  }
 }
 
 function renderTimerState(prevMode = null) {
@@ -301,7 +292,6 @@ modeTabs.forEach((tab, i) => {
 });
 
 if (toggleBtn) toggleBtn.addEventListener('click', toggleTimer);
-if (headerToggleBtn) headerToggleBtn.addEventListener('click', toggleTimer);
 if (resetBtn) resetBtn.addEventListener('click', resetTimer);
 if (skipBtn) skipBtn.addEventListener('click', skipTimer);
 
@@ -590,6 +580,245 @@ if (openThemeBtn && themePanel) {
 document.querySelectorAll('.theme-chip').forEach(chip => {
   chip.addEventListener('click', () => applyTheme(chip.dataset.theme));
 });
+
+// ════════════════════════════════════════════════════
+//  MUSIK COZY GENERATIF (Web Audio — tanpa file eksternal)
+//  4 track dengan karakter beda; melodi & pad dibangkitkan
+//  langsung oleh kode sehingga tidak ada link audio yang
+//  bisa mati dan bebas masalah copyright.
+// ════════════════════════════════════════════════════
+const MUSIC_TRACKS = {
+  kopi:  { emoji: '☕', name: 'Kopi Senja',         bpm: 60, hiss: true },
+  hujan: { emoji: '🌧️', name: 'Hujan di Jendela',   bpm: 54, rain: true },
+  buku:  { emoji: '📚', name: 'Perpustakaan Senin', bpm: 76, musicbox: true },
+  malam: { emoji: '🌙', name: 'Malam Berbintang',   bpm: 48, dreamy: true },
+};
+
+// Progresi chord (nomor MIDI) — diulang tiap 4 bar
+const MUSIC_PROGS = {
+  kopi:  [[53,57,60,64],[52,55,59,62],[50,53,57,60],[48,52,55,59]], // Fmaj7 Em7 Dm7 Cmaj7
+  hujan: [[45,52,55,60],[53,57,60,64],[48,52,55,59],[50,55,59,62]], // Am7 Fmaj7 Cmaj7 Dm7
+  buku:  [[48,55,60],[45,52,60],[43,50,59],[41,48,57]],             // C  Am  G  F
+  malam: [[50,53,57,60],[46,50,53,58],[48,52,55,59],[45,52,55,60]], // Dm  Bb  C  Am
+};
+
+const MUSIC_PENTA = [72, 74, 76, 79, 81, 84]; // pentatonik C — kotak musik
+
+const music = {
+  playing: null,  // key track aktif
+  bus: null,      // gain node bus track aktif
+  noise: [],      // noise source aktif (hujan / hiss)
+  timer: null,    // interval scheduler
+  nextBar: 0,
+  barIdx: 0,
+  chainOut: null, // rantai fx bersama (lowpass + delay)
+};
+
+function musicHz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+
+function musicChain() {
+  if (music.chainOut) return music.chainOut;
+  const ctx = getAudioCtx();
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 2800; lp.Q.value = 0.4;
+  lp.connect(ctx.destination);
+  const delay = ctx.createDelay(1); delay.delayTime.value = 0.34;
+  const fb = ctx.createGain(); fb.gain.value = 0.3;
+  const wet = ctx.createGain(); wet.gain.value = 0.22;
+  delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(ctx.destination);
+  music.chainOut = { out: lp, delay };
+  return music.chainOut;
+}
+
+function musicPad(bus, t, midi, dur, vol, type) {
+  const ctx = getAudioCtx();
+  const o = ctx.createOscillator();
+  o.type = type || 'triangle';
+  o.frequency.value = musicHz(midi);
+  o.detune.value = (Math.random() * 6) - 3; // sedikit lebar biar hidup
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + dur * 0.4);
+  g.gain.setValueAtTime(vol, t + dur * 0.75);
+  g.gain.linearRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(bus);
+  o.start(t); o.stop(t + dur + 0.1);
+}
+
+function musicPluck(bus, t, midi, vol) {
+  const ctx = getAudioCtx();
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.value = musicHz(midi);
+  const o2 = ctx.createOscillator(); o2.type = 'triangle';
+  o2.frequency.value = musicHz(midi); o2.detune.value = 7; // shimmer tipis
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(vol * 0.25, t);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+  o.connect(g); o2.connect(g2);
+  g.connect(bus); g2.connect(bus);
+  o.start(t); o.stop(t + 1.5);
+  o2.start(t); o2.stop(t + 1.0);
+}
+
+function musicNoise(bus, kind) {
+  // 'rain' = hujan lembut, 'hiss' = desis vinyl tipis
+  const ctx = getAudioCtx();
+  const len = ctx.sampleRate * 2;
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+  const f = ctx.createBiquadFilter();
+  const g = ctx.createGain();
+  if (kind === 'rain') {
+    f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 0.5;
+    g.gain.value = 0.035;
+  } else {
+    f.type = 'highpass'; f.frequency.value = 6000;
+    g.gain.value = 0.005;
+  }
+  src.connect(f); f.connect(g); g.connect(bus);
+  src.start();
+  music.noise.push(src);
+}
+
+function musicBar(t, key, idx, barDur) {
+  const tr = MUSIC_TRACKS[key];
+  const chord = MUSIC_PROGS[key][idx % 4];
+  const bus = music.bus;
+
+  // Pad chord
+  const padVol = tr.dreamy ? 0.075 : (tr.musicbox ? 0.05 : 0.06);
+  chord.forEach(m => musicPad(bus, t, m, barDur * 0.98, padVol, tr.dreamy ? 'sine' : 'triangle'));
+
+  // Bass lembut
+  musicPad(bus, t, chord[0] - 12, barDur * 0.92, tr.dreamy ? 0.1 : 0.08, 'sine');
+
+  // Melodi
+  if (tr.musicbox) {
+    const hits = 3 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < hits; i++) {
+      if (Math.random() < 0.25) continue;
+      const beat = t + (Math.random() * barDur * 0.9);
+      const note = MUSIC_PENTA[Math.floor(Math.random() * MUSIC_PENTA.length)];
+      musicPluck(bus, beat, note, 0.1 + Math.random() * 0.06);
+    }
+  } else {
+    const hits = 1 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < hits; i++) {
+      if (Math.random() < 0.3) continue;
+      const beat = t + barDur * (0.2 + Math.random() * 0.6);
+      const tones = chord.map(m => m + 12);
+      const note = tones[Math.floor(Math.random() * tones.length)];
+      musicPluck(bus, beat, note, 0.07 + Math.random() * 0.05);
+    }
+  }
+}
+
+function musicTick() {
+  if (!music.playing) return;
+  const ctx = getAudioCtx();
+  const tr = MUSIC_TRACKS[music.playing];
+  const barDur = (60 / tr.bpm) * 4;
+  while (music.nextBar < ctx.currentTime + 1.5) {
+    musicBar(music.nextBar, music.playing, music.barIdx, barDur);
+    music.nextBar += barDur;
+    music.barIdx++;
+  }
+}
+
+function playMusic(key) {
+  if (music.playing === key) return;
+  stopMusic(true);
+  const ctx = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  const chain = musicChain();
+  const bus = ctx.createGain();
+  bus.gain.value = 0.0001;
+  bus.connect(chain.out); bus.connect(chain.delay);
+  bus.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 0.8);
+  music.bus = bus;
+  music.playing = key;
+  music.barIdx = 0;
+  music.nextBar = ctx.currentTime + 0.15;
+  const tr = MUSIC_TRACKS[key];
+  if (tr.rain) musicNoise(bus, 'rain');
+  if (tr.hiss) musicNoise(bus, 'hiss');
+  music.timer = setInterval(musicTick, 300);
+  updateMusicUI();
+}
+
+function stopMusic(instant = false) {
+  if (!music.playing) { updateMusicUI(); return; }
+  clearInterval(music.timer);
+  music.timer = null;
+  const ctx = getAudioCtx();
+  const bus = music.bus;
+  const oldNoise = music.noise.slice();
+  music.noise = [];
+  music.playing = null;
+  music.bus = null;
+  const fade = instant ? 0.15 : 0.5;
+  if (bus) {
+    try {
+      bus.gain.cancelScheduledValues(ctx.currentTime);
+      bus.gain.setValueAtTime(bus.gain.value, ctx.currentTime);
+      bus.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + fade);
+    } catch (e) {}
+    setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, fade * 1000 + 300);
+  }
+  oldNoise.forEach(n => { try { n.stop(ctx.currentTime + fade); } catch (e) {} });
+  updateMusicUI();
+}
+
+function updateMusicUI() {
+  const musicBtn = $('music-btn');
+  const btnEmoji = $('music-btn-emoji');
+  const btnLabel = $('music-btn-label');
+  document.querySelectorAll('.music-track').forEach(b => {
+    b.classList.toggle('active', b.dataset.track === music.playing);
+  });
+  const stopBtn = $('music-stop-btn');
+  if (stopBtn) stopBtn.disabled = !music.playing;
+  if (musicBtn) musicBtn.classList.toggle('playing', !!music.playing);
+  if (btnEmoji && btnLabel) {
+    const tr = music.playing ? MUSIC_TRACKS[music.playing] : null;
+    btnEmoji.textContent = tr ? tr.emoji : '🎧';
+    btnLabel.textContent = tr ? tr.name : 'Musik';
+  }
+}
+
+// ── UI Panel Musik ──
+const musicBtnEl   = $('music-btn');
+const musicPanelEl = $('music-panel');
+
+if (musicBtnEl && musicPanelEl) {
+  musicBtnEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    musicPanelEl.classList.toggle('hidden');
+    if (themePanel) themePanel.classList.add('hidden');
+  });
+  const closeMusicPanel = $('close-music-panel');
+  if (closeMusicPanel) closeMusicPanel.addEventListener('click', () => musicPanelEl.classList.add('hidden'));
+  document.addEventListener('click', (e) => {
+    if (!musicPanelEl.classList.contains('hidden') &&
+        !musicPanelEl.contains(e.target) &&
+        !musicBtnEl.contains(e.target)) {
+      musicPanelEl.classList.add('hidden');
+    }
+  });
+  document.querySelectorAll('.music-track').forEach(b => {
+    b.addEventListener('click', () => {
+      if (music.playing === b.dataset.track) stopMusic();
+      else playMusic(b.dataset.track);
+    });
+  });
+  const musicStopBtn = $('music-stop-btn');
+  if (musicStopBtn) musicStopBtn.addEventListener('click', () => stopMusic());
+}
 
 // ── SCREEN TEMPERATURE ──
 const tempLabels = [
